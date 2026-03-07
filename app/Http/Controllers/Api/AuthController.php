@@ -48,6 +48,7 @@ class AuthController extends Controller
                 'access_token' => $token,
                 'token_type' => 'Bearer',
                 'user' => $user,
+                'redirect_to' => $user->role === Role::ADMIN ? 'admin_dashboard' : 'user_dashboard',
             ]);
 
         } catch (\Exception $e) {
@@ -80,6 +81,7 @@ class AuthController extends Controller
             'access_token' => $token,
             'token_type' => 'Bearer',
             'user' => $user,
+            'redirect_to' => $user->role === Role::ADMIN ? 'admin_dashboard' : 'user_dashboard',
         ]);
     }
 
@@ -103,6 +105,7 @@ class AuthController extends Controller
             'access_token' => $token,
             'token_type' => 'Bearer',
             'user' => $user,
+            'redirect_to' => $user->role === Role::ADMIN ? 'admin_dashboard' : 'user_dashboard',
         ]);
     }
 
