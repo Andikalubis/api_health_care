@@ -28,10 +28,12 @@ class AuthController extends Controller
             'role' => $request->role ?? Role::USER->value,
         ]);
 
-        $token = $user->createToken('auth_token')->plainTextToken;
+        $accessToken = $user->createToken('access_token', ['*'], now()->addHour())->plainTextToken;
+        $refreshToken = $user->createToken('refresh_token', ['issue-access-token'], now()->addDays(7))->plainTextToken;
 
         return response()->json([
-            'access_token' => $token,
+            'access_token' => $accessToken,
+            'refresh_token' => $refreshToken,
             'token_type' => 'Bearer',
             'user' => $user,
         ]);
@@ -51,10 +53,12 @@ class AuthController extends Controller
         }
 
         $user = User::where('email', $request->email)->firstOrFail();
-        $token = $user->createToken('auth_token')->plainTextToken;
+        $accessToken = $user->createToken('access_token', ['*'], now()->addHour())->plainTextToken;
+        $refreshToken = $user->createToken('refresh_token', ['issue-access-token'], now()->addDays(7))->plainTextToken;
 
         return response()->json([
-            'access_token' => $token,
+            'access_token' => $accessToken,
+            'refresh_token' => $refreshToken,
             'token_type' => 'Bearer',
             'user' => $user,
         ]);
@@ -62,7 +66,7 @@ class AuthController extends Controller
 
     public function logout(Request $request)
     {
-        $request->user()->currentAccessToken()->delete();
+        $request->user()->tokens()->delete();
 
         return response()->json([
             'message' => 'Successfully logged out'
@@ -71,12 +75,21 @@ class AuthController extends Controller
 
     public function refresh(Request $request)
     {
-        $user = $request->user();
-        $request->user()->currentAccessToken()->delete();
-        $token = $user->createToken('auth_token')->plainTextToken;
+        $request->validate([
+            'refresh_token' => 'required|string',
+        ]);
+
+        $token = \Laravel\Sanctum\PersonalAccessToken::findToken($request->refresh_token);
+
+        if (!$token || $token->name !== 'refresh_token' || ($token->expires_at && $token->expires_at->isPast())) {
+            return response()->json(['message' => 'Invalid or expired refresh token'], 401);
+        }
+
+        $user = $token->tokenable;
+        $newAccessToken = $user->createToken('access_token', ['*'], now()->addHour())->plainTextToken;
 
         return response()->json([
-            'access_token' => $token,
+            'access_token' => $newAccessToken,
             'token_type' => 'Bearer',
             'user' => $user,
         ]);
