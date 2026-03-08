@@ -9,56 +9,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
-use Laravel\Socialite\Facades\Socialite;
 
 class AuthController extends Controller
 {
-    public function googleLogin(Request $request)
-    {
-        $request->validate([
-            'token' => 'required|string',
-        ]);
-
-        try {
-            $googleUser = Socialite::driver('google')->userFromToken($request->token);
-
-            $user = User::where('google_id', $googleUser->getId())
-                ->orWhere('email', $googleUser->getEmail())
-                ->first();
-
-            if (!$user) {
-                // Register new user automatically with role 'user'
-                $user = User::create([
-                    'name' => $googleUser->getName(),
-                    'email' => $googleUser->getEmail(),
-                    'google_id' => $googleUser->getId(),
-                    'role' => Role::USER,
-                    'password' => null, // No password for social login
-                ]);
-            } else {
-                // Update google_id if it was null
-                if (is_null($user->google_id)) {
-                    $user->update(['google_id' => $googleUser->getId()]);
-                }
-            }
-
-            $token = $user->createToken('auth_token')->plainTextToken;
-
-            return response()->json([
-                'access_token' => $token,
-                'token_type' => 'Bearer',
-                'user' => $user,
-                'redirect_to' => $user->role === Role::ADMIN ? 'admin_dashboard' : 'user_dashboard',
-            ]);
-
-        } catch (\Exception $e) {
-            return response()->json([
-                'message' => 'Invalid Google token',
-                'error' => $e->getMessage()
-            ], 401);
-        }
-    }
-
     public function register(Request $request)
     {
         $request->validate([
@@ -81,7 +34,6 @@ class AuthController extends Controller
             'access_token' => $token,
             'token_type' => 'Bearer',
             'user' => $user,
-            'redirect_to' => $user->role === Role::ADMIN ? 'admin_dashboard' : 'user_dashboard',
         ]);
     }
 
@@ -105,7 +57,6 @@ class AuthController extends Controller
             'access_token' => $token,
             'token_type' => 'Bearer',
             'user' => $user,
-            'redirect_to' => $user->role === Role::ADMIN ? 'admin_dashboard' : 'user_dashboard',
         ]);
     }
 
@@ -115,6 +66,19 @@ class AuthController extends Controller
 
         return response()->json([
             'message' => 'Successfully logged out'
+        ]);
+    }
+
+    public function refresh(Request $request)
+    {
+        $user = $request->user();
+        $request->user()->currentAccessToken()->delete();
+        $token = $user->createToken('auth_token')->plainTextToken;
+
+        return response()->json([
+            'access_token' => $token,
+            'token_type' => 'Bearer',
+            'user' => $user,
         ]);
     }
 }
