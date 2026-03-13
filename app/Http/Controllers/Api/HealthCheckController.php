@@ -17,9 +17,18 @@ class HealthCheckController extends Controller
         $this->telegramService = $telegramService;
     }
 
-    public function index()
+    public function index(Request $request)
     {
-        return response()->json(HealthCheck::with(['patient', 'healthType'])->get());
+        $user = $request->user();
+        $query = HealthCheck::with(['patient', 'healthType']);
+
+        if ($user->role->value !== 'admin') {
+            $query->whereHas('patient', function ($q) use ($user) {
+                $q->where('user_id', $user->id);
+            });
+        }
+
+        return response()->json($query->get());
     }
 
     public function store(Request $request)
@@ -32,6 +41,14 @@ class HealthCheckController extends Controller
             'notes' => 'nullable|string',
             'check_time' => 'required|date',
         ]);
+
+        // Ownership check
+        if ($request->user()->role->value !== 'admin') {
+            $patient = PatientData::find($validated['patient_id']);
+            if ($patient->user_id !== $request->user()->id) {
+                return response()->json(['message' => 'Unauthorized to add data for this patient'], 403);
+            }
+        }
 
         $healthCheck = HealthCheck::create($validated);
         $healthCheck->load('healthType', 'patient');
@@ -51,13 +68,21 @@ class HealthCheckController extends Controller
         return response()->json($healthCheck, 201);
     }
 
-    public function show(HealthCheck $healthCheck)
+    public function show(Request $request, HealthCheck $healthCheck)
     {
+        if ($request->user()->role->value !== 'admin' && $healthCheck->patient->user_id !== $request->user()->id) {
+            return response()->json(['message' => 'Unauthorized access'], 403);
+        }
+
         return response()->json($healthCheck->load(['patient', 'healthType', 'healthAlerts']));
     }
 
     public function update(Request $request, HealthCheck $healthCheck)
     {
+        if ($request->user()->role->value !== 'admin' && $healthCheck->patient->user_id !== $request->user()->id) {
+            return response()->json(['message' => 'Unauthorized access'], 403);
+        }
+
         $validated = $request->validate([
             'patient_id' => 'sometimes|required|exists:patient_data,id',
             'health_type_id' => 'sometimes|required|exists:health_types,id',
@@ -67,12 +92,24 @@ class HealthCheckController extends Controller
             'check_time' => 'sometimes|required|date',
         ]);
 
+        // If changing patient_id, check ownership of NEW patient
+        if (isset($validated['patient_id']) && $request->user()->role->value !== 'admin') {
+            $patient = PatientData::find($validated['patient_id']);
+            if ($patient->user_id !== $request->user()->id) {
+                return response()->json(['message' => 'Unauthorized to move data to this patient'], 403);
+            }
+        }
+
         $healthCheck->update($validated);
         return response()->json($healthCheck);
     }
 
-    public function destroy(HealthCheck $healthCheck)
+    public function destroy(Request $request, HealthCheck $healthCheck)
     {
+        if ($request->user()->role->value !== 'admin' && $healthCheck->patient->user_id !== $request->user()->id) {
+            return response()->json(['message' => 'Unauthorized access'], 403);
+        }
+
         $healthCheck->delete();
         return response()->json(null, 204);
     }

@@ -42,6 +42,14 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('telegram-users', TelegramUserController::class);
     Route::apiResource('notifications', NotificationController::class);
 
+    // Monitoring Routes
+    Route::get('/admin/monitor', [\App\Http\Controllers\Api\MonitoringController::class, 'adminMonitor'])->middleware('role:admin');
+    Route::get('/user/monitor', [\App\Http\Controllers\Api\MonitoringController::class, 'userMonitor'])->middleware('role:user');
+
+    // Combined Medical Record Routes
+    Route::post('/medical-records', [\App\Http\Controllers\Api\MedicalRecordController::class, 'store']);
+    Route::get('/medical-records/{patient_id}', [\App\Http\Controllers\Api\MedicalRecordController::class, 'show']);
+
     Route::post('/telegram/set-webhook', [\App\Http\Controllers\Api\TelegramBotController::class, 'setWebhook']);
 });
 

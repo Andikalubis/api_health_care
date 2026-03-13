@@ -4,13 +4,23 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\VitalSign;
+use App\Models\PatientData;
 use Illuminate\Http\Request;
 
 class VitalSignController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        return response()->json(VitalSign::with('patient')->get());
+        $user = $request->user();
+        $query = VitalSign::with('patient');
+
+        if ($user->role->value !== 'admin') {
+            $query->whereHas('patient', function ($q) use ($user) {
+                $q->where('user_id', $user->id);
+            });
+        }
+
+        return response()->json($query->get());
     }
 
     public function store(Request $request)
@@ -25,17 +35,32 @@ class VitalSignController extends Controller
             'check_time' => 'required|date',
         ]);
 
+        if ($request->user()->role->value !== 'admin') {
+            $patient = PatientData::find($validated['patient_id']);
+            if ($patient->user_id !== $request->user()->id) {
+                return response()->json(['message' => 'Unauthorized to add data for this patient'], 403);
+            }
+        }
+
         $vitalSign = VitalSign::create($validated);
         return response()->json($vitalSign, 201);
     }
 
-    public function show(VitalSign $vitalSign)
+    public function show(Request $request, VitalSign $vitalSign)
     {
+        if ($request->user()->role->value !== 'admin' && $vitalSign->patient->user_id !== $request->user()->id) {
+            return response()->json(['message' => 'Unauthorized access'], 403);
+        }
+
         return response()->json($vitalSign->load('patient'));
     }
 
     public function update(Request $request, VitalSign $vitalSign)
     {
+        if ($request->user()->role->value !== 'admin' && $vitalSign->patient->user_id !== $request->user()->id) {
+            return response()->json(['message' => 'Unauthorized access'], 403);
+        }
+
         $validated = $request->validate([
             'patient_id' => 'sometimes|required|exists:patient_data,id',
             'blood_pressure' => 'sometimes|required|string|max:20',
@@ -46,12 +71,23 @@ class VitalSignController extends Controller
             'check_time' => 'sometimes|required|date',
         ]);
 
+        if (isset($validated['patient_id']) && $request->user()->role->value !== 'admin') {
+            $patient = PatientData::find($validated['patient_id']);
+            if ($patient->user_id !== $request->user()->id) {
+                return response()->json(['message' => 'Unauthorized to move data to this patient'], 403);
+            }
+        }
+
         $vitalSign->update($validated);
         return response()->json($vitalSign);
     }
 
-    public function destroy(VitalSign $vitalSign)
+    public function destroy(Request $request, VitalSign $vitalSign)
     {
+        if ($request->user()->role->value !== 'admin' && $vitalSign->patient->user_id !== $request->user()->id) {
+            return response()->json(['message' => 'Unauthorized access'], 403);
+        }
+
         $vitalSign->delete();
         return response()->json(null, 204);
     }

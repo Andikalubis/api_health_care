@@ -15,6 +15,10 @@ class HealthLimitController extends Controller
 
     public function store(Request $request)
     {
+        if ($request->user()->role->value !== 'admin') {
+            return response()->json(['message' => 'Only admins can set health limits'], 403);
+        }
+
         $validated = $request->validate([
             'health_type_id' => 'required|exists:health_types,id',
             'warning_min' => 'required|numeric',
@@ -34,6 +38,10 @@ class HealthLimitController extends Controller
 
     public function update(Request $request, HealthLimit $healthLimit)
     {
+        if ($request->user()->role->value !== 'admin') {
+            return response()->json(['message' => 'Only admins can update health limits'], 403);
+        }
+
         $validated = $request->validate([
             'health_type_id' => 'sometimes|required|exists:health_types,id',
             'warning_min' => 'sometimes|required|numeric',
@@ -46,8 +54,12 @@ class HealthLimitController extends Controller
         return response()->json($healthLimit);
     }
 
-    public function destroy(HealthLimit $healthLimit)
+    public function destroy(Request $request, HealthLimit $healthLimit)
     {
+        if ($request->user()->role->value !== 'admin') {
+            return response()->json(['message' => 'Only admins can delete health limits'], 403);
+        }
+
         $healthLimit->delete();
         return response()->json(null, 204);
     }

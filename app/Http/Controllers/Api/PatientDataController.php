@@ -5,12 +5,20 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\PatientData;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class PatientDataController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        return response()->json(PatientData::with('user')->get());
+        $user = $request->user();
+        $query = PatientData::with('user');
+
+        if ($user->role->value !== 'admin') {
+            $query->where('user_id', $user->id);
+        }
+
+        return response()->json($query->get());
     }
 
     public function store(Request $request)
@@ -29,13 +37,21 @@ class PatientDataController extends Controller
         return response()->json($patientData, 201);
     }
 
-    public function show(PatientData $patientData)
+    public function show(Request $request, PatientData $patientData)
     {
+        if ($request->user()->role->value !== 'admin' && $patientData->user_id !== $request->user()->id) {
+            return response()->json(['message' => 'Unauthorized access'], 403);
+        }
+
         return response()->json($patientData->load('user', 'healthChecks', 'vitalSigns', 'medicineSchedules', 'mealSchedules'));
     }
 
     public function update(Request $request, PatientData $patientData)
     {
+        if ($request->user()->role->value !== 'admin' && $patientData->user_id !== $request->user()->id) {
+            return response()->json(['message' => 'Unauthorized access'], 403);
+        }
+
         $validated = $request->validate([
             'user_id' => 'sometimes|required|exists:users,id',
             'name' => 'sometimes|required|string|max:100',
@@ -50,8 +66,12 @@ class PatientDataController extends Controller
         return response()->json($patientData);
     }
 
-    public function destroy(PatientData $patientData)
+    public function destroy(Request $request, PatientData $patientData)
     {
+        if ($request->user()->role->value !== 'admin' && $patientData->user_id !== $request->user()->id) {
+            return response()->json(['message' => 'Unauthorized access'], 403);
+        }
+
         $patientData->delete();
         return response()->json(null, 204);
     }
