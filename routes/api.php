@@ -46,6 +46,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/admin/monitor', [\App\Http\Controllers\Api\MonitoringController::class, 'adminMonitor'])->middleware('role:admin');
     Route::get('/user/monitor', [\App\Http\Controllers\Api\MonitoringController::class, 'userMonitor'])->middleware('role:user');
 
+    // Master Notifications (Admin Only)
+    Route::apiResource('master-notifications', \App\Http\Controllers\Api\MasterNotificationController::class)->middleware('role:admin');
+
     // Combined Medical Record Routes
     Route::post('/medical-records', [\App\Http\Controllers\Api\MedicalRecordController::class, 'store']);
     Route::get('/medical-records/{patient_id}', [\App\Http\Controllers\Api\MedicalRecordController::class, 'show']);

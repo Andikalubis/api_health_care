@@ -5,42 +5,103 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\MealType;
 use Illuminate\Http\Request;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Validation\ValidationException;
 
 class MealTypeController extends Controller
 {
+    /**
+     * Display a listing of the resource.
+     * Mengambil semua daftar tipe waktu makan.
+     */
     public function index()
     {
-        return response()->json(MealType::all());
+        try {
+            $mealTypes = MealType::all();
+            return $this->successResponse($mealTypes, 'Berhasil mengambil daftar tipe waktu makan.');
+        } catch (\Exception $e) {
+            return $this->errorResponse('Terjadi kesalahan saat mengambil daftar tipe waktu makan.', 500, $e->getMessage());
+        }
     }
 
+    /**
+     * Store a newly created resource in storage.
+     * Menyimpan tipe waktu makan baru ke dalam database.
+     */
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:50',
-        ]);
+        try {
+            $validated = $request->validate([
+                'name' => 'required|string|max:50',
+            ]);
 
-        $mealType = MealType::create($validated);
-        return response()->json($mealType, 201);
+            $mealType = MealType::create($validated);
+
+            return $this->successResponse($mealType, 'Berhasil membuat tipe waktu makan baru.', 201);
+        } catch (ValidationException $e) {
+            return $this->validationErrorResponse($e->errors());
+        } catch (\Exception $e) {
+            return $this->errorResponse('Terjadi kesalahan saat membuat tipe waktu makan.', 500, $e->getMessage());
+        }
     }
 
-    public function show(MealType $mealType)
+    /**
+     * Display the specified resource.
+     * Menampilkan detail dari satu tipe waktu makan berdasarkan ID.
+     */
+    public function show($id)
     {
-        return response()->json($mealType);
+        try {
+            $mealType = MealType::findOrFail($id);
+
+            return $this->successResponse($mealType, 'Berhasil mengambil detail tipe waktu makan.');
+        } catch (ModelNotFoundException $e) {
+            return $this->errorResponse('Tipe waktu makan tidak ditemukan.', 404, $e->getMessage());
+        } catch (\Exception $e) {
+            return $this->errorResponse('Terjadi kesalahan saat mengambil detail tipe waktu makan.', 500, $e->getMessage());
+        }
     }
 
-    public function update(Request $request, MealType $mealType)
+    /**
+     * Update the specified resource in storage.
+     * Mengubah data tipe waktu makan yang sudah ada di database.
+     */
+    public function update(Request $request, $id)
     {
-        $validated = $request->validate([
-            'name' => 'sometimes|required|string|max:50',
-        ]);
+        try {
+            $mealType = MealType::findOrFail($id);
 
-        $mealType->update($validated);
-        return response()->json($mealType);
+            $validated = $request->validate([
+                'name' => 'sometimes|required|string|max:50',
+            ]);
+
+            $mealType->update($validated);
+
+            return $this->successResponse($mealType, 'Berhasil mengubah data tipe waktu makan.');
+        } catch (ModelNotFoundException $e) {
+            return $this->errorResponse('Tipe waktu makan tidak ditemukan.', 404, $e->getMessage());
+        } catch (ValidationException $e) {
+            return $this->validationErrorResponse($e->errors());
+        } catch (\Exception $e) {
+            return $this->errorResponse('Terjadi kesalahan saat mengubah data tipe waktu makan.', 500, $e->getMessage());
+        }
     }
 
-    public function destroy(MealType $mealType)
+    /**
+     * Remove the specified resource from storage.
+     * Menghapus tipe waktu makan dari database.
+     */
+    public function destroy($id)
     {
-        $mealType->delete();
-        return response()->json(null, 204);
+        try {
+            $mealType = MealType::findOrFail($id);
+            $mealType->delete();
+
+            return $this->successResponse(null, 'Berhasil menghapus tipe waktu makan.');
+        } catch (ModelNotFoundException $e) {
+            return $this->errorResponse('Tipe waktu makan tidak ditemukan.', 404, $e->getMessage());
+        } catch (\Exception $e) {
+            return $this->errorResponse('Terjadi kesalahan saat menghapus tipe waktu makan.', 500, $e->getMessage());
+        }
     }
 }

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Services\TelegramService;
 use Illuminate\Http\Request;
+use Telegram\Bot\Laravel\Facades\Telegram;
 
 class TelegramBotController extends Controller
 {
@@ -15,21 +16,33 @@ class TelegramBotController extends Controller
         $this->telegramService = $telegramService;
     }
 
+    /**
+     * Handle incoming webhooks from Telegram.
+     * Menangani webhook yang masuk dari Telegram.
+     */
     public function handle(Request $request)
     {
-        $this->telegramService->handleWebhook();
-        return response()->json(['status' => 'success']);
+        try {
+            $this->telegramService->handleWebhook();
+            return $this->successResponse(null, 'Webhook berhasil ditangani.');
+        } catch (\Exception $e) {
+            return $this->errorResponse('Terjadi kesalahan saat menangani webhook.', 500, $e->getMessage());
+        }
     }
 
+    /**
+     * Set the Telegram webhook URL.
+     * Mengatur URL webhook Telegram.
+     */
     public function setWebhook()
     {
-        $url = env('TELEGRAM_WEBHOOK_URL');
-        $response = \Telegram\Bot\Laravel\Facades\Telegram::setWebhook(['url' => $url]);
+        try {
+            $url = env('TELEGRAM_WEBHOOK_URL');
+            $response = Telegram::setWebhook(['url' => $url]);
 
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Webhook set to: ' . $url,
-            'response' => $response
-        ]);
+            return $this->successResponse($response, 'Webhook berhasil diatur ke: ' . $url);
+        } catch (\Exception $e) {
+            return $this->errorResponse('Terjadi kesalahan saat mengatur webhook.', 500, $e->getMessage());
+        }
     }
 }
