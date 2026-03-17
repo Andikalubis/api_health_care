@@ -28,7 +28,7 @@ class TelegramUserController extends Controller
 
             return $this->successResponse($telegramUsers, 'Berhasil mengambil daftar pengguna telegram.');
         } catch (\Exception $e) {
-            return $this->errorResponse('Terjadi kesalahan saat mengambil daftar pengguna telegram.', 500, $e->getMessage());
+            return $this->errorResponse('Terjadi kesalahan saat mengambil daftar pengguna telegram.', 500);
         }
     }
 
@@ -55,7 +55,7 @@ class TelegramUserController extends Controller
         } catch (ValidationException $e) {
             return $this->validationErrorResponse($e->errors());
         } catch (\Exception $e) {
-            return $this->errorResponse('Terjadi kesalahan saat membuat pengguna telegram.', 500, $e->getMessage());
+            return $this->errorResponse('Terjadi kesalahan saat membuat pengguna telegram.', 500);
         }
     }
 
@@ -74,9 +74,9 @@ class TelegramUserController extends Controller
 
             return $this->successResponse($telegramUser->load('user'), 'Berhasil mengambil detail pengguna telegram.');
         } catch (ModelNotFoundException $e) {
-            return $this->errorResponse('Pengguna telegram tidak ditemukan.', 404, $e->getMessage());
+            return $this->errorResponse('Pengguna telegram tidak ditemukan.', 404);
         } catch (\Exception $e) {
-            return $this->errorResponse('Terjadi kesalahan saat mengambil detail pengguna telegram.', 500, $e->getMessage());
+            return $this->errorResponse('Terjadi kesalahan saat mengambil detail pengguna telegram.', 500);
         }
     }
 
@@ -107,11 +107,11 @@ class TelegramUserController extends Controller
 
             return $this->successResponse($telegramUser, 'Berhasil mengubah data pengguna telegram.');
         } catch (ModelNotFoundException $e) {
-            return $this->errorResponse('Pengguna telegram tidak ditemukan.', 404, $e->getMessage());
+            return $this->errorResponse('Pengguna telegram tidak ditemukan.', 404);
         } catch (ValidationException $e) {
             return $this->validationErrorResponse($e->errors());
         } catch (\Exception $e) {
-            return $this->errorResponse('Terjadi kesalahan saat mengubah data pengguna telegram.', 500, $e->getMessage());
+            return $this->errorResponse('Terjadi kesalahan saat mengubah data pengguna telegram.', 500);
         }
     }
 
@@ -132,9 +132,9 @@ class TelegramUserController extends Controller
 
             return $this->successResponse(null, 'Berhasil menghapus pengguna telegram.');
         } catch (ModelNotFoundException $e) {
-            return $this->errorResponse('Pengguna telegram tidak ditemukan.', 404, $e->getMessage());
+            return $this->errorResponse('Pengguna telegram tidak ditemukan.', 404);
         } catch (\Exception $e) {
-            return $this->errorResponse('Terjadi kesalahan saat menghapus pengguna telegram.', 500, $e->getMessage());
+            return $this->errorResponse('Terjadi kesalahan saat menghapus pengguna telegram.', 500);
         }
     }
 }
