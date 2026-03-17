@@ -20,7 +20,7 @@ class MonitoringController extends Controller
 
             return $this->successResponse($monitoringData, 'Berhasil mengambil semua data monitoring pengguna.');
         } catch (\Exception $e) {
-            return $this->errorResponse('Terjadi kesalahan saat mengambil data monitoring.', 500, $e->getMessage());
+            return $this->errorResponse('Terjadi kesalahan saat mengambil data monitoring.', 500);
         }
     }
 
@@ -41,7 +41,7 @@ class MonitoringController extends Controller
 
             return $this->successResponse($monitoringData, 'Berhasil mengambil data monitoring pengguna.');
         } catch (\Exception $e) {
-            return $this->errorResponse('Terjadi kesalahan saat mengambil data monitoring.', 500, $e->getMessage());
+            return $this->errorResponse('Terjadi kesalahan saat mengambil data monitoring.', 500);
         }
     }
 }

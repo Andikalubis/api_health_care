@@ -28,7 +28,7 @@ class PatientDataController extends Controller
 
             return $this->successResponse($patientData, 'Berhasil mengambil daftar data pasien.');
         } catch (\Exception $e) {
-            return $this->errorResponse('Terjadi kesalahan saat mengambil daftar data pasien.', 500, $e->getMessage());
+            return $this->errorResponse('Terjadi kesalahan saat mengambil daftar data pasien.', 500);
         }
     }
 
@@ -55,7 +55,7 @@ class PatientDataController extends Controller
         } catch (ValidationException $e) {
             return $this->validationErrorResponse($e->errors());
         } catch (\Exception $e) {
-            return $this->errorResponse('Terjadi kesalahan saat membuat data pasien.', 500, $e->getMessage());
+            return $this->errorResponse('Terjadi kesalahan saat membuat data pasien.', 500);
         }
     }
 
@@ -74,9 +74,9 @@ class PatientDataController extends Controller
 
             return $this->successResponse($patientData->load('user', 'healthChecks', 'vitalSigns', 'medicineSchedules', 'mealSchedules'), 'Berhasil mengambil detail data pasien.');
         } catch (ModelNotFoundException $e) {
-            return $this->errorResponse('Data pasien tidak ditemukan.', 404, $e->getMessage());
+            return $this->errorResponse('Data pasien tidak ditemukan.', 404);
         } catch (\Exception $e) {
-            return $this->errorResponse('Terjadi kesalahan saat mengambil detail data pasien.', 500, $e->getMessage());
+            return $this->errorResponse('Terjadi kesalahan saat mengambil detail data pasien.', 500);
         }
     }
 
@@ -107,11 +107,11 @@ class PatientDataController extends Controller
 
             return $this->successResponse($patientData, 'Berhasil mengubah data pasien.');
         } catch (ModelNotFoundException $e) {
-            return $this->errorResponse('Data pasien tidak ditemukan.', 404, $e->getMessage());
+            return $this->errorResponse('Data pasien tidak ditemukan.', 404);
         } catch (ValidationException $e) {
             return $this->validationErrorResponse($e->errors());
         } catch (\Exception $e) {
-            return $this->errorResponse('Terjadi kesalahan saat mengubah data pasien.', 500, $e->getMessage());
+            return $this->errorResponse('Terjadi kesalahan saat mengubah data pasien.', 500);
         }
     }
 
@@ -132,9 +132,9 @@ class PatientDataController extends Controller
 
             return $this->successResponse(null, 'Berhasil menghapus data pasien.');
         } catch (ModelNotFoundException $e) {
-            return $this->errorResponse('Data pasien tidak ditemukan.', 404, $e->getMessage());
+            return $this->errorResponse('Data pasien tidak ditemukan.', 404);
         } catch (\Exception $e) {
-            return $this->errorResponse('Terjadi kesalahan saat menghapus data pasien.', 500, $e->getMessage());
+            return $this->errorResponse('Terjadi kesalahan saat menghapus data pasien.', 500);
         }
     }
 }

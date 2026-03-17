@@ -26,7 +26,7 @@ class TelegramBotController extends Controller
             $this->telegramService->handleWebhook();
             return $this->successResponse(null, 'Webhook berhasil ditangani.');
         } catch (\Exception $e) {
-            return $this->errorResponse('Terjadi kesalahan saat menangani webhook.', 500, $e->getMessage());
+            return $this->errorResponse('Terjadi kesalahan saat menangani webhook.', 500);
         }
     }
 
@@ -42,7 +42,7 @@ class TelegramBotController extends Controller
 
             return $this->successResponse($response, 'Webhook berhasil diatur ke: ' . $url);
         } catch (\Exception $e) {
-            return $this->errorResponse('Terjadi kesalahan saat mengatur webhook.', 500, $e->getMessage());
+            return $this->errorResponse('Terjadi kesalahan saat mengatur webhook.', 500);
         }
     }
 }

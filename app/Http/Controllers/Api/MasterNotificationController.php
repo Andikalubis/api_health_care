@@ -20,7 +20,7 @@ class MasterNotificationController extends Controller
             $masterNotifications = MasterNotification::all();
             return $this->successResponse($masterNotifications, 'Berhasil mengambil daftar master notifikasi.');
         } catch (\Exception $e) {
-            return $this->errorResponse('Terjadi kesalahan saat mengambil daftar master notifikasi.', 500, $e->getMessage());
+            return $this->errorResponse('Terjadi kesalahan saat mengambil daftar master notifikasi.', 500);
         }
     }
 
@@ -43,7 +43,7 @@ class MasterNotificationController extends Controller
         } catch (ValidationException $e) {
             return $this->validationErrorResponse($e->errors());
         } catch (\Exception $e) {
-            return $this->errorResponse('Terjadi kesalahan saat membuat master notifikasi.', 500, $e->getMessage());
+            return $this->errorResponse('Terjadi kesalahan saat membuat master notifikasi.', 500);
         }
     }
 
@@ -58,9 +58,9 @@ class MasterNotificationController extends Controller
 
             return $this->successResponse($masterNotification, 'Berhasil mengambil detail master notifikasi.');
         } catch (ModelNotFoundException $e) {
-            return $this->errorResponse('Master notifikasi tidak ditemukan.', 404, $e->getMessage());
+            return $this->errorResponse('Master notifikasi tidak ditemukan.', 404);
         } catch (\Exception $e) {
-            return $this->errorResponse('Terjadi kesalahan saat mengambil detail master notifikasi.', 500, $e->getMessage());
+            return $this->errorResponse('Terjadi kesalahan saat mengambil detail master notifikasi.', 500);
         }
     }
 
@@ -83,11 +83,11 @@ class MasterNotificationController extends Controller
 
             return $this->successResponse($masterNotification, 'Berhasil mengubah data master notifikasi.');
         } catch (ModelNotFoundException $e) {
-            return $this->errorResponse('Master notifikasi tidak ditemukan.', 404, $e->getMessage());
+            return $this->errorResponse('Master notifikasi tidak ditemukan.', 404);
         } catch (ValidationException $e) {
             return $this->validationErrorResponse($e->errors());
         } catch (\Exception $e) {
-            return $this->errorResponse('Terjadi kesalahan saat mengubah data master notifikasi.', 500, $e->getMessage());
+            return $this->errorResponse('Terjadi kesalahan saat mengubah data master notifikasi.', 500);
         }
     }
 
@@ -103,9 +103,9 @@ class MasterNotificationController extends Controller
 
             return $this->successResponse(null, 'Berhasil menghapus master notifikasi.');
         } catch (ModelNotFoundException $e) {
-            return $this->errorResponse('Master notifikasi tidak ditemukan.', 404, $e->getMessage());
+            return $this->errorResponse('Master notifikasi tidak ditemukan.', 404);
         } catch (\Exception $e) {
-            return $this->errorResponse('Terjadi kesalahan saat menghapus master notifikasi.', 500, $e->getMessage());
+            return $this->errorResponse('Terjadi kesalahan saat menghapus master notifikasi.', 500);
         }
     }
 }

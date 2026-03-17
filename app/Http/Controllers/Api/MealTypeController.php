@@ -20,7 +20,7 @@ class MealTypeController extends Controller
             $mealTypes = MealType::all();
             return $this->successResponse($mealTypes, 'Berhasil mengambil daftar tipe waktu makan.');
         } catch (\Exception $e) {
-            return $this->errorResponse('Terjadi kesalahan saat mengambil daftar tipe waktu makan.', 500, $e->getMessage());
+            return $this->errorResponse('Terjadi kesalahan saat mengambil daftar tipe waktu makan.', 500);
         }
     }
 
@@ -41,7 +41,7 @@ class MealTypeController extends Controller
         } catch (ValidationException $e) {
             return $this->validationErrorResponse($e->errors());
         } catch (\Exception $e) {
-            return $this->errorResponse('Terjadi kesalahan saat membuat tipe waktu makan.', 500, $e->getMessage());
+            return $this->errorResponse('Terjadi kesalahan saat membuat tipe waktu makan.', 500);
         }
     }
 
@@ -56,9 +56,9 @@ class MealTypeController extends Controller
 
             return $this->successResponse($mealType, 'Berhasil mengambil detail tipe waktu makan.');
         } catch (ModelNotFoundException $e) {
-            return $this->errorResponse('Tipe waktu makan tidak ditemukan.', 404, $e->getMessage());
+            return $this->errorResponse('Tipe waktu makan tidak ditemukan.', 404);
         } catch (\Exception $e) {
-            return $this->errorResponse('Terjadi kesalahan saat mengambil detail tipe waktu makan.', 500, $e->getMessage());
+            return $this->errorResponse('Terjadi kesalahan saat mengambil detail tipe waktu makan.', 500);
         }
     }
 
@@ -79,11 +79,11 @@ class MealTypeController extends Controller
 
             return $this->successResponse($mealType, 'Berhasil mengubah data tipe waktu makan.');
         } catch (ModelNotFoundException $e) {
-            return $this->errorResponse('Tipe waktu makan tidak ditemukan.', 404, $e->getMessage());
+            return $this->errorResponse('Tipe waktu makan tidak ditemukan.', 404);
         } catch (ValidationException $e) {
             return $this->validationErrorResponse($e->errors());
         } catch (\Exception $e) {
-            return $this->errorResponse('Terjadi kesalahan saat mengubah data tipe waktu makan.', 500, $e->getMessage());
+            return $this->errorResponse('Terjadi kesalahan saat mengubah data tipe waktu makan.', 500);
         }
     }
 
@@ -99,9 +99,9 @@ class MealTypeController extends Controller
 
             return $this->successResponse(null, 'Berhasil menghapus tipe waktu makan.');
         } catch (ModelNotFoundException $e) {
-            return $this->errorResponse('Tipe waktu makan tidak ditemukan.', 404, $e->getMessage());
+            return $this->errorResponse('Tipe waktu makan tidak ditemukan.', 404);
         } catch (\Exception $e) {
-            return $this->errorResponse('Terjadi kesalahan saat menghapus tipe waktu makan.', 500, $e->getMessage());
+            return $this->errorResponse('Terjadi kesalahan saat menghapus tipe waktu makan.', 500);
         }
     }
 }

@@ -28,7 +28,7 @@ class NotificationController extends Controller
 
             return $this->successResponse($notifications, 'Berhasil mengambil daftar notifikasi.');
         } catch (\Exception $e) {
-            return $this->errorResponse('Terjadi kesalahan saat mengambil daftar notifikasi.', 500, $e->getMessage());
+            return $this->errorResponse('Terjadi kesalahan saat mengambil daftar notifikasi.', 500);
         }
     }
 
@@ -57,7 +57,7 @@ class NotificationController extends Controller
         } catch (ValidationException $e) {
             return $this->validationErrorResponse($e->errors());
         } catch (\Exception $e) {
-            return $this->errorResponse('Terjadi kesalahan saat membuat notifikasi.', 500, $e->getMessage());
+            return $this->errorResponse('Terjadi kesalahan saat membuat notifikasi.', 500);
         }
     }
 
@@ -76,9 +76,9 @@ class NotificationController extends Controller
 
             return $this->successResponse($notification->load('user'), 'Berhasil mengambil detail notifikasi.');
         } catch (ModelNotFoundException $e) {
-            return $this->errorResponse('Notifikasi tidak ditemukan.', 404, $e->getMessage());
+            return $this->errorResponse('Notifikasi tidak ditemukan.', 404);
         } catch (\Exception $e) {
-            return $this->errorResponse('Terjadi kesalahan saat mengambil detail notifikasi.', 500, $e->getMessage());
+            return $this->errorResponse('Terjadi kesalahan saat mengambil detail notifikasi.', 500);
         }
     }
 
@@ -111,11 +111,11 @@ class NotificationController extends Controller
 
             return $this->successResponse($notification, 'Berhasil mengubah data notifikasi.');
         } catch (ModelNotFoundException $e) {
-            return $this->errorResponse('Notifikasi tidak ditemukan.', 404, $e->getMessage());
+            return $this->errorResponse('Notifikasi tidak ditemukan.', 404);
         } catch (ValidationException $e) {
             return $this->validationErrorResponse($e->errors());
         } catch (\Exception $e) {
-            return $this->errorResponse('Terjadi kesalahan saat mengubah data notifikasi.', 500, $e->getMessage());
+            return $this->errorResponse('Terjadi kesalahan saat mengubah data notifikasi.', 500);
         }
     }
 
@@ -136,9 +136,9 @@ class NotificationController extends Controller
 
             return $this->successResponse(null, 'Berhasil menghapus notifikasi.');
         } catch (ModelNotFoundException $e) {
-            return $this->errorResponse('Notifikasi tidak ditemukan.', 404, $e->getMessage());
+            return $this->errorResponse('Notifikasi tidak ditemukan.', 404);
         } catch (\Exception $e) {
-            return $this->errorResponse('Terjadi kesalahan saat menghapus notifikasi.', 500, $e->getMessage());
+            return $this->errorResponse('Terjadi kesalahan saat menghapus notifikasi.', 500);
         }
     }
 }

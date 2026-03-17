@@ -75,9 +75,9 @@ class MedicalRecordController extends Controller
         } catch (ValidationException $e) {
             return $this->validationErrorResponse($e->errors());
         } catch (ModelNotFoundException $e) {
-            return $this->errorResponse('Pasien tidak ditemukan.', 404, $e->getMessage());
+            return $this->errorResponse('Pasien tidak ditemukan.', 404);
         } catch (\Exception $e) {
-            return $this->errorResponse('Terjadi kesalahan saat menyimpan rekam medis.', 500, $e->getMessage());
+            return $this->errorResponse('Terjadi kesalahan saat menyimpan rekam medis.', 500);
         }
     }
 
@@ -112,9 +112,9 @@ class MedicalRecordController extends Controller
                 'health_checks' => $healthChecks,
             ], 'Berhasil mengambil detail rekam medis terpadu.');
         } catch (ModelNotFoundException $e) {
-            return $this->errorResponse('Pasien tidak ditemukan.', 404, $e->getMessage());
+            return $this->errorResponse('Pasien tidak ditemukan.', 404);
         } catch (\Exception $e) {
-            return $this->errorResponse('Terjadi kesalahan saat mengambil detail rekam medis.', 500, $e->getMessage());
+            return $this->errorResponse('Terjadi kesalahan saat mengambil detail rekam medis.', 500);
         }
     }
 }

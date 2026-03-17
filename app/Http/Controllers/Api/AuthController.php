@@ -46,7 +46,7 @@ class AuthController extends Controller
         } catch (ValidationException $e) {
             return $this->validationErrorResponse($e->errors());
         } catch (\Exception $e) {
-            return $this->errorResponse('Terjadi kesalahan saat pendaftaran.', 500, $e->getMessage());
+            return $this->errorResponse('Terjadi kesalahan saat pendaftaran.', 500);
         }
     }
 
@@ -79,7 +79,7 @@ class AuthController extends Controller
         } catch (ValidationException $e) {
             return $this->validationErrorResponse($e->errors());
         } catch (\Exception $e) {
-            return $this->errorResponse('Terjadi kesalahan saat masuk.', 500, $e->getMessage());
+            return $this->errorResponse('Terjadi kesalahan saat masuk.', 500);
         }
     }
 
@@ -94,7 +94,7 @@ class AuthController extends Controller
 
             return $this->successResponse(null, 'Berhasil keluar.');
         } catch (\Exception $e) {
-            return $this->errorResponse('Terjadi kesalahan saat keluar.', 500, $e->getMessage());
+            return $this->errorResponse('Terjadi kesalahan saat keluar.', 500);
         }
     }
 
@@ -126,7 +126,7 @@ class AuthController extends Controller
         } catch (ValidationException $e) {
             return $this->validationErrorResponse($e->errors());
         } catch (\Exception $e) {
-            return $this->errorResponse('Terjadi kesalahan saat memperbarui token.', 500, $e->getMessage());
+            return $this->errorResponse('Terjadi kesalahan saat memperbarui token.', 500);
         }
     }
 }

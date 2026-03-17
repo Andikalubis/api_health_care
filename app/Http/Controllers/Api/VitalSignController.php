@@ -31,7 +31,7 @@ class VitalSignController extends Controller
 
             return $this->successResponse($vitalSigns, 'Berhasil mengambil daftar tanda-tanda vital.');
         } catch (\Exception $e) {
-            return $this->errorResponse('Terjadi kesalahan saat mengambil daftar tanda-tanda vital.', 500, $e->getMessage());
+            return $this->errorResponse('Terjadi kesalahan saat mengambil daftar tanda-tanda vital.', 500);
         }
     }
 
@@ -65,7 +65,7 @@ class VitalSignController extends Controller
         } catch (ValidationException $e) {
             return $this->validationErrorResponse($e->errors());
         } catch (\Exception $e) {
-            return $this->errorResponse('Terjadi kesalahan saat membuat data tanda-tanda vital.', 500, $e->getMessage());
+            return $this->errorResponse('Terjadi kesalahan saat membuat data tanda-tanda vital.', 500);
         }
     }
 
@@ -84,9 +84,9 @@ class VitalSignController extends Controller
 
             return $this->successResponse($vitalSign->load('patient'), 'Berhasil mengambil detail data tanda-tanda vital.');
         } catch (ModelNotFoundException $e) {
-            return $this->errorResponse('Data tanda-tanda vital tidak ditemukan.', 404, $e->getMessage());
+            return $this->errorResponse('Data tanda-tanda vital tidak ditemukan.', 404);
         } catch (\Exception $e) {
-            return $this->errorResponse('Terjadi kesalahan saat mengambil detail data tanda-tanda vital.', 500, $e->getMessage());
+            return $this->errorResponse('Terjadi kesalahan saat mengambil detail data tanda-tanda vital.', 500);
         }
     }
 
@@ -124,11 +124,11 @@ class VitalSignController extends Controller
 
             return $this->successResponse($vitalSign, 'Berhasil mengubah data tanda-tanda vital.');
         } catch (ModelNotFoundException $e) {
-            return $this->errorResponse('Data tanda-tanda vital tidak ditemukan.', 404, $e->getMessage());
+            return $this->errorResponse('Data tanda-tanda vital tidak ditemukan.', 404);
         } catch (ValidationException $e) {
             return $this->validationErrorResponse($e->errors());
         } catch (\Exception $e) {
-            return $this->errorResponse('Terjadi kesalahan saat mengubah data tanda-tanda vital.', 500, $e->getMessage());
+            return $this->errorResponse('Terjadi kesalahan saat mengubah data tanda-tanda vital.', 500);
         }
     }
 
@@ -149,9 +149,9 @@ class VitalSignController extends Controller
 
             return $this->successResponse(null, 'Berhasil menghapus data tanda-tanda vital.');
         } catch (ModelNotFoundException $e) {
-            return $this->errorResponse('Data tanda-tanda vital tidak ditemukan.', 404, $e->getMessage());
+            return $this->errorResponse('Data tanda-tanda vital tidak ditemukan.', 404);
         } catch (\Exception $e) {
-            return $this->errorResponse('Terjadi kesalahan saat menghapus data tanda-tanda vital.', 500, $e->getMessage());
+            return $this->errorResponse('Terjadi kesalahan saat menghapus data tanda-tanda vital.', 500);
         }
     }
 }

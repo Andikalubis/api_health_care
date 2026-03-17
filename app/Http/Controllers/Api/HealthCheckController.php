@@ -39,7 +39,7 @@ class HealthCheckController extends Controller
 
             return $this->successResponse($healthChecks, 'Berhasil mengambil daftar pemeriksaan kesehatan.');
         } catch (\Exception $e) {
-            return $this->errorResponse('Terjadi kesalahan saat mengambil daftar pemeriksaan kesehatan.', 500, $e->getMessage());
+            return $this->errorResponse('Terjadi kesalahan saat mengambil daftar pemeriksaan kesehatan.', 500);
         }
     }
 
@@ -90,7 +90,7 @@ class HealthCheckController extends Controller
         } catch (ValidationException $e) {
             return $this->validationErrorResponse($e->errors());
         } catch (\Exception $e) {
-            return $this->errorResponse('Terjadi kesalahan saat membuat pemeriksaan kesehatan.', 500, $e->getMessage());
+            return $this->errorResponse('Terjadi kesalahan saat membuat pemeriksaan kesehatan.', 500);
         }
     }
 
@@ -109,9 +109,9 @@ class HealthCheckController extends Controller
 
             return $this->successResponse($healthCheck->load(['patient', 'healthType', 'healthAlerts']), 'Berhasil mengambil detail pemeriksaan kesehatan.');
         } catch (ModelNotFoundException $e) {
-            return $this->errorResponse('Pemeriksaan kesehatan tidak ditemukan.', 404, $e->getMessage());
+            return $this->errorResponse('Pemeriksaan kesehatan tidak ditemukan.', 404);
         } catch (\Exception $e) {
-            return $this->errorResponse('Terjadi kesalahan saat mengambil detail pemeriksaan kesehatan.', 500, $e->getMessage());
+            return $this->errorResponse('Terjadi kesalahan saat mengambil detail pemeriksaan kesehatan.', 500);
         }
     }
 
@@ -149,11 +149,11 @@ class HealthCheckController extends Controller
 
             return $this->successResponse($healthCheck, 'Berhasil mengubah data pemeriksaan kesehatan.');
         } catch (ModelNotFoundException $e) {
-            return $this->errorResponse('Pemeriksaan kesehatan tidak ditemukan.', 404, $e->getMessage());
+            return $this->errorResponse('Pemeriksaan kesehatan tidak ditemukan.', 404);
         } catch (ValidationException $e) {
             return $this->validationErrorResponse($e->errors());
         } catch (\Exception $e) {
-            return $this->errorResponse('Terjadi kesalahan saat mengubah data pemeriksaan kesehatan.', 500, $e->getMessage());
+            return $this->errorResponse('Terjadi kesalahan saat mengubah data pemeriksaan kesehatan.', 500);
         }
     }
 
@@ -174,9 +174,9 @@ class HealthCheckController extends Controller
 
             return $this->successResponse(null, 'Berhasil menghapus pemeriksaan kesehatan.');
         } catch (ModelNotFoundException $e) {
-            return $this->errorResponse('Pemeriksaan kesehatan tidak ditemukan.', 404, $e->getMessage());
+            return $this->errorResponse('Pemeriksaan kesehatan tidak ditemukan.', 404);
         } catch (\Exception $e) {
-            return $this->errorResponse('Terjadi kesalahan saat menghapus pemeriksaan kesehatan.', 500, $e->getMessage());
+            return $this->errorResponse('Terjadi kesalahan saat menghapus pemeriksaan kesehatan.', 500);
         }
     }
 }

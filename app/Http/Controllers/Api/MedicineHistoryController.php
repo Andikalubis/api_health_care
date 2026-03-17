@@ -31,7 +31,7 @@ class MedicineHistoryController extends Controller
 
             return $this->successResponse($histories, 'Berhasil mengambil daftar riwayat minum obat.');
         } catch (\Exception $e) {
-            return $this->errorResponse('Terjadi kesalahan saat mengambil daftar riwayat minum obat.', 500, $e->getMessage());
+            return $this->errorResponse('Terjadi kesalahan saat mengambil daftar riwayat minum obat.', 500);
         }
     }
 
@@ -61,7 +61,7 @@ class MedicineHistoryController extends Controller
         } catch (ValidationException $e) {
             return $this->validationErrorResponse($e->errors());
         } catch (\Exception $e) {
-            return $this->errorResponse('Terjadi kesalahan saat membuat riwayat minum obat.', 500, $e->getMessage());
+            return $this->errorResponse('Terjadi kesalahan saat membuat riwayat minum obat.', 500);
         }
     }
 
@@ -80,9 +80,9 @@ class MedicineHistoryController extends Controller
 
             return $this->successResponse($medicineHistory->load('medicineSchedule'), 'Berhasil mengambil detail riwayat minum obat.');
         } catch (ModelNotFoundException $e) {
-            return $this->errorResponse('Riwayat minum obat tidak ditemukan.', 404, $e->getMessage());
+            return $this->errorResponse('Riwayat minum obat tidak ditemukan.', 404);
         } catch (\Exception $e) {
-            return $this->errorResponse('Terjadi kesalahan saat mengambil detail riwayat minum obat.', 500, $e->getMessage());
+            return $this->errorResponse('Terjadi kesalahan saat mengambil detail riwayat minum obat.', 500);
         }
     }
 
@@ -116,11 +116,11 @@ class MedicineHistoryController extends Controller
 
             return $this->successResponse($medicineHistory, 'Berhasil mengubah data riwayat minum obat.');
         } catch (ModelNotFoundException $e) {
-            return $this->errorResponse('Riwayat minum obat tidak ditemukan.', 404, $e->getMessage());
+            return $this->errorResponse('Riwayat minum obat tidak ditemukan.', 404);
         } catch (ValidationException $e) {
             return $this->validationErrorResponse($e->errors());
         } catch (\Exception $e) {
-            return $this->errorResponse('Terjadi kesalahan saat mengubah data riwayat minum obat.', 500, $e->getMessage());
+            return $this->errorResponse('Terjadi kesalahan saat mengubah data riwayat minum obat.', 500);
         }
     }
 
@@ -141,9 +141,9 @@ class MedicineHistoryController extends Controller
 
             return $this->successResponse(null, 'Berhasil menghapus riwayat minum obat.');
         } catch (ModelNotFoundException $e) {
-            return $this->errorResponse('Riwayat minum obat tidak ditemukan.', 404, $e->getMessage());
+            return $this->errorResponse('Riwayat minum obat tidak ditemukan.', 404);
         } catch (\Exception $e) {
-            return $this->errorResponse('Terjadi kesalahan saat menghapus riwayat minum obat.', 500, $e->getMessage());
+            return $this->errorResponse('Terjadi kesalahan saat menghapus riwayat minum obat.', 500);
         }
     }
 }

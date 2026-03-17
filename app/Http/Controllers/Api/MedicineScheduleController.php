@@ -31,7 +31,7 @@ class MedicineScheduleController extends Controller
 
             return $this->successResponse($schedules, 'Berhasil mengambil daftar jadwal obat.');
         } catch (\Exception $e) {
-            return $this->errorResponse('Terjadi kesalahan saat mengambil daftar jadwal obat.', 500, $e->getMessage());
+            return $this->errorResponse('Terjadi kesalahan saat mengambil daftar jadwal obat.', 500);
         }
     }
 
@@ -65,7 +65,7 @@ class MedicineScheduleController extends Controller
         } catch (ValidationException $e) {
             return $this->validationErrorResponse($e->errors());
         } catch (\Exception $e) {
-            return $this->errorResponse('Terjadi kesalahan saat membuat jadwal obat.', 500, $e->getMessage());
+            return $this->errorResponse('Terjadi kesalahan saat membuat jadwal obat.', 500);
         }
     }
 
@@ -84,9 +84,9 @@ class MedicineScheduleController extends Controller
 
             return $this->successResponse($medicineSchedule->load(['patient', 'medicine', 'medicineHistories']), 'Berhasil mengambil detail jadwal obat.');
         } catch (ModelNotFoundException $e) {
-            return $this->errorResponse('Jadwal obat tidak ditemukan.', 404, $e->getMessage());
+            return $this->errorResponse('Jadwal obat tidak ditemukan.', 404);
         } catch (\Exception $e) {
-            return $this->errorResponse('Terjadi kesalahan saat mengambil detail jadwal obat.', 500, $e->getMessage());
+            return $this->errorResponse('Terjadi kesalahan saat mengambil detail jadwal obat.', 500);
         }
     }
 
@@ -124,11 +124,11 @@ class MedicineScheduleController extends Controller
 
             return $this->successResponse($medicineSchedule, 'Berhasil mengubah data jadwal obat.');
         } catch (ModelNotFoundException $e) {
-            return $this->errorResponse('Jadwal obat tidak ditemukan.', 404, $e->getMessage());
+            return $this->errorResponse('Jadwal obat tidak ditemukan.', 404);
         } catch (ValidationException $e) {
             return $this->validationErrorResponse($e->errors());
         } catch (\Exception $e) {
-            return $this->errorResponse('Terjadi kesalahan saat mengubah data jadwal obat.', 500, $e->getMessage());
+            return $this->errorResponse('Terjadi kesalahan saat mengubah data jadwal obat.', 500);
         }
     }
 
@@ -149,9 +149,9 @@ class MedicineScheduleController extends Controller
 
             return $this->successResponse(null, 'Berhasil menghapus jadwal obat.');
         } catch (ModelNotFoundException $e) {
-            return $this->errorResponse('Jadwal obat tidak ditemukan.', 404, $e->getMessage());
+            return $this->errorResponse('Jadwal obat tidak ditemukan.', 404);
         } catch (\Exception $e) {
-            return $this->errorResponse('Terjadi kesalahan saat menghapus jadwal obat.', 500, $e->getMessage());
+            return $this->errorResponse('Terjadi kesalahan saat menghapus jadwal obat.', 500);
         }
     }
 }

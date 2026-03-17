@@ -31,7 +31,7 @@ class HealthAlertController extends Controller
 
             return $this->successResponse($alerts, 'Berhasil mengambil daftar peringatan kesehatan.');
         } catch (\Exception $e) {
-            return $this->errorResponse('Terjadi kesalahan saat mengambil daftar peringatan kesehatan.', 500, $e->getMessage());
+            return $this->errorResponse('Terjadi kesalahan saat mengambil daftar peringatan kesehatan.', 500);
         }
     }
 
@@ -62,7 +62,7 @@ class HealthAlertController extends Controller
         } catch (ValidationException $e) {
             return $this->validationErrorResponse($e->errors());
         } catch (\Exception $e) {
-            return $this->errorResponse('Terjadi kesalahan saat membuat peringatan kesehatan.', 500, $e->getMessage());
+            return $this->errorResponse('Terjadi kesalahan saat membuat peringatan kesehatan.', 500);
         }
     }
 
@@ -81,9 +81,9 @@ class HealthAlertController extends Controller
 
             return $this->successResponse($healthAlert->load('healthCheck'), 'Berhasil mengambil detail peringatan kesehatan.');
         } catch (ModelNotFoundException $e) {
-            return $this->errorResponse('Peringatan kesehatan tidak ditemukan.', 404, $e->getMessage());
+            return $this->errorResponse('Peringatan kesehatan tidak ditemukan.', 404);
         } catch (\Exception $e) {
-            return $this->errorResponse('Terjadi kesalahan saat mengambil detail peringatan kesehatan.', 500, $e->getMessage());
+            return $this->errorResponse('Terjadi kesalahan saat mengambil detail peringatan kesehatan.', 500);
         }
     }
 
@@ -118,11 +118,11 @@ class HealthAlertController extends Controller
 
             return $this->successResponse($healthAlert, 'Berhasil mengubah data peringatan kesehatan.');
         } catch (ModelNotFoundException $e) {
-            return $this->errorResponse('Peringatan kesehatan tidak ditemukan.', 404, $e->getMessage());
+            return $this->errorResponse('Peringatan kesehatan tidak ditemukan.', 404);
         } catch (ValidationException $e) {
             return $this->validationErrorResponse($e->errors());
         } catch (\Exception $e) {
-            return $this->errorResponse('Terjadi kesalahan saat mengubah data peringatan kesehatan.', 500, $e->getMessage());
+            return $this->errorResponse('Terjadi kesalahan saat mengubah data peringatan kesehatan.', 500);
         }
     }
 
@@ -143,9 +143,9 @@ class HealthAlertController extends Controller
 
             return $this->successResponse(null, 'Berhasil menghapus peringatan kesehatan.');
         } catch (ModelNotFoundException $e) {
-            return $this->errorResponse('Peringatan kesehatan tidak ditemukan.', 404, $e->getMessage());
+            return $this->errorResponse('Peringatan kesehatan tidak ditemukan.', 404);
         } catch (\Exception $e) {
-            return $this->errorResponse('Terjadi kesalahan saat menghapus peringatan kesehatan.', 500, $e->getMessage());
+            return $this->errorResponse('Terjadi kesalahan saat menghapus peringatan kesehatan.', 500);
         }
     }
 }

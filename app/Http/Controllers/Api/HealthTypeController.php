@@ -20,7 +20,7 @@ class HealthTypeController extends Controller
             $healthTypes = HealthType::all();
             return $this->successResponse($healthTypes, 'Berhasil mengambil daftar tipe kesehatan.');
         } catch (\Exception $e) {
-            return $this->errorResponse('Terjadi kesalahan saat mengambil daftar tipe kesehatan.', 500, $e->getMessage());
+            return $this->errorResponse('Terjadi kesalahan saat mengambil daftar tipe kesehatan.', 500);
         }
     }
 
@@ -45,7 +45,7 @@ class HealthTypeController extends Controller
         } catch (ValidationException $e) {
             return $this->validationErrorResponse($e->errors());
         } catch (\Exception $e) {
-            return $this->errorResponse('Terjadi kesalahan saat membuat tipe kesehatan.', 500, $e->getMessage());
+            return $this->errorResponse('Terjadi kesalahan saat membuat tipe kesehatan.', 500);
         }
     }
 
@@ -60,9 +60,9 @@ class HealthTypeController extends Controller
 
             return $this->successResponse($healthType, 'Berhasil mengambil detail tipe kesehatan.');
         } catch (ModelNotFoundException $e) {
-            return $this->errorResponse('Tipe kesehatan tidak ditemukan.', 404, $e->getMessage());
+            return $this->errorResponse('Tipe kesehatan tidak ditemukan.', 404);
         } catch (\Exception $e) {
-            return $this->errorResponse('Terjadi kesalahan saat mengambil detail tipe kesehatan.', 500, $e->getMessage());
+            return $this->errorResponse('Terjadi kesalahan saat mengambil detail tipe kesehatan.', 500);
         }
     }
 
@@ -87,11 +87,11 @@ class HealthTypeController extends Controller
 
             return $this->successResponse($healthType, 'Berhasil mengubah data tipe kesehatan.');
         } catch (ModelNotFoundException $e) {
-            return $this->errorResponse('Tipe kesehatan tidak ditemukan.', 404, $e->getMessage());
+            return $this->errorResponse('Tipe kesehatan tidak ditemukan.', 404);
         } catch (ValidationException $e) {
             return $this->validationErrorResponse($e->errors());
         } catch (\Exception $e) {
-            return $this->errorResponse('Terjadi kesalahan saat mengubah data tipe kesehatan.', 500, $e->getMessage());
+            return $this->errorResponse('Terjadi kesalahan saat mengubah data tipe kesehatan.', 500);
         }
     }
 
@@ -107,9 +107,9 @@ class HealthTypeController extends Controller
 
             return $this->successResponse(null, 'Berhasil menghapus tipe kesehatan.');
         } catch (ModelNotFoundException $e) {
-            return $this->errorResponse('Tipe kesehatan tidak ditemukan.', 404, $e->getMessage());
+            return $this->errorResponse('Tipe kesehatan tidak ditemukan.', 404);
         } catch (\Exception $e) {
-            return $this->errorResponse('Terjadi kesalahan saat menghapus tipe kesehatan.', 500, $e->getMessage());
+            return $this->errorResponse('Terjadi kesalahan saat menghapus tipe kesehatan.', 500);
         }
     }
 }

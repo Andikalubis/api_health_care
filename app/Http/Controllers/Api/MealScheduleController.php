@@ -31,7 +31,7 @@ class MealScheduleController extends Controller
 
             return $this->successResponse($schedules, 'Berhasil mengambil daftar jadwal makan.');
         } catch (\Exception $e) {
-            return $this->errorResponse('Terjadi kesalahan saat mengambil daftar jadwal makan.', 500, $e->getMessage());
+            return $this->errorResponse('Terjadi kesalahan saat mengambil daftar jadwal makan.', 500);
         }
     }
 
@@ -62,7 +62,7 @@ class MealScheduleController extends Controller
         } catch (ValidationException $e) {
             return $this->validationErrorResponse($e->errors());
         } catch (\Exception $e) {
-            return $this->errorResponse('Terjadi kesalahan saat membuat jadwal makan.', 500, $e->getMessage());
+            return $this->errorResponse('Terjadi kesalahan saat membuat jadwal makan.', 500);
         }
     }
 
@@ -81,9 +81,9 @@ class MealScheduleController extends Controller
 
             return $this->successResponse($mealSchedule->load(['patient', 'mealType']), 'Berhasil mengambil detail jadwal makan.');
         } catch (ModelNotFoundException $e) {
-            return $this->errorResponse('Jadwal makan tidak ditemukan.', 404, $e->getMessage());
+            return $this->errorResponse('Jadwal makan tidak ditemukan.', 404);
         } catch (\Exception $e) {
-            return $this->errorResponse('Terjadi kesalahan saat mengambil detail jadwal makan.', 500, $e->getMessage());
+            return $this->errorResponse('Terjadi kesalahan saat mengambil detail jadwal makan.', 500);
         }
     }
 
@@ -118,11 +118,11 @@ class MealScheduleController extends Controller
 
             return $this->successResponse($mealSchedule, 'Berhasil mengubah data jadwal makan.');
         } catch (ModelNotFoundException $e) {
-            return $this->errorResponse('Jadwal makan tidak ditemukan.', 404, $e->getMessage());
+            return $this->errorResponse('Jadwal makan tidak ditemukan.', 404);
         } catch (ValidationException $e) {
             return $this->validationErrorResponse($e->errors());
         } catch (\Exception $e) {
-            return $this->errorResponse('Terjadi kesalahan saat mengubah data jadwal makan.', 500, $e->getMessage());
+            return $this->errorResponse('Terjadi kesalahan saat mengubah data jadwal makan.', 500);
         }
     }
 
@@ -143,9 +143,9 @@ class MealScheduleController extends Controller
 
             return $this->successResponse(null, 'Berhasil menghapus jadwal makan.');
         } catch (ModelNotFoundException $e) {
-            return $this->errorResponse('Jadwal makan tidak ditemukan.', 404, $e->getMessage());
+            return $this->errorResponse('Jadwal makan tidak ditemukan.', 404);
         } catch (\Exception $e) {
-            return $this->errorResponse('Terjadi kesalahan saat menghapus jadwal makan.', 500, $e->getMessage());
+            return $this->errorResponse('Terjadi kesalahan saat menghapus jadwal makan.', 500);
         }
     }
 }

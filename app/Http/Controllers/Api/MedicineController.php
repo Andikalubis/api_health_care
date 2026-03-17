@@ -20,7 +20,7 @@ class MedicineController extends Controller
             $medicines = Medicine::all();
             return $this->successResponse($medicines, 'Berhasil mengambil daftar obat.');
         } catch (\Exception $e) {
-            return $this->errorResponse('Terjadi kesalahan saat mengambil daftar obat.', 500, $e->getMessage());
+            return $this->errorResponse('Terjadi kesalahan saat mengambil daftar obat.', 500);
         }
     }
 
@@ -42,7 +42,7 @@ class MedicineController extends Controller
         } catch (ValidationException $e) {
             return $this->validationErrorResponse($e->errors());
         } catch (\Exception $e) {
-            return $this->errorResponse('Terjadi kesalahan saat membuat obat baru.', 500, $e->getMessage());
+            return $this->errorResponse('Terjadi kesalahan saat membuat obat baru.', 500);
         }
     }
 
@@ -57,9 +57,9 @@ class MedicineController extends Controller
 
             return $this->successResponse($medicine, 'Berhasil mengambil detail obat.');
         } catch (ModelNotFoundException $e) {
-            return $this->errorResponse('Obat tidak ditemukan.', 404, $e->getMessage());
+            return $this->errorResponse('Obat tidak ditemukan.', 404);
         } catch (\Exception $e) {
-            return $this->errorResponse('Terjadi kesalahan saat mengambil detail obat.', 500, $e->getMessage());
+            return $this->errorResponse('Terjadi kesalahan saat mengambil detail obat.', 500);
         }
     }
 
@@ -81,11 +81,11 @@ class MedicineController extends Controller
 
             return $this->successResponse($medicine, 'Berhasil mengubah data obat.');
         } catch (ModelNotFoundException $e) {
-            return $this->errorResponse('Obat tidak ditemukan.', 404, $e->getMessage());
+            return $this->errorResponse('Obat tidak ditemukan.', 404);
         } catch (ValidationException $e) {
             return $this->validationErrorResponse($e->errors());
         } catch (\Exception $e) {
-            return $this->errorResponse('Terjadi kesalahan saat mengubah data obat.', 500, $e->getMessage());
+            return $this->errorResponse('Terjadi kesalahan saat mengubah data obat.', 500);
         }
     }
 
@@ -101,9 +101,9 @@ class MedicineController extends Controller
 
             return $this->successResponse(null, 'Berhasil menghapus obat.');
         } catch (ModelNotFoundException $e) {
-            return $this->errorResponse('Obat tidak ditemukan.', 404, $e->getMessage());
+            return $this->errorResponse('Obat tidak ditemukan.', 404);
         } catch (\Exception $e) {
-            return $this->errorResponse('Terjadi kesalahan saat menghapus obat.', 500, $e->getMessage());
+            return $this->errorResponse('Terjadi kesalahan saat menghapus obat.', 500);
         }
     }
 }

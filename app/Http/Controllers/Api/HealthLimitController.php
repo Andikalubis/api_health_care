@@ -21,7 +21,7 @@ class HealthLimitController extends Controller
 
             return $this->successResponse($limits, 'Berhasil mengambil daftar batas kesehatan.');
         } catch (\Exception $e) {
-            return $this->errorResponse('Terjadi kesalahan saat mengambil daftar batas kesehatan.', 500, $e->getMessage());
+            return $this->errorResponse('Terjadi kesalahan saat mengambil daftar batas kesehatan.', 500);
         }
     }
 
@@ -50,7 +50,7 @@ class HealthLimitController extends Controller
         } catch (ValidationException $e) {
             return $this->validationErrorResponse($e->errors());
         } catch (\Exception $e) {
-            return $this->errorResponse('Terjadi kesalahan saat membuat batas kesehatan.', 500, $e->getMessage());
+            return $this->errorResponse('Terjadi kesalahan saat membuat batas kesehatan.', 500);
         }
     }
 
@@ -65,9 +65,9 @@ class HealthLimitController extends Controller
 
             return $this->successResponse($healthLimit->load('healthType'), 'Berhasil mengambil detail batas kesehatan.');
         } catch (ModelNotFoundException $e) {
-            return $this->errorResponse('Batas kesehatan tidak ditemukan.', 404, $e->getMessage());
+            return $this->errorResponse('Batas kesehatan tidak ditemukan.', 404);
         } catch (\Exception $e) {
-            return $this->errorResponse('Terjadi kesalahan saat mengambil detail batas kesehatan.', 500, $e->getMessage());
+            return $this->errorResponse('Terjadi kesalahan saat mengambil detail batas kesehatan.', 500);
         }
     }
 
@@ -96,11 +96,11 @@ class HealthLimitController extends Controller
 
             return $this->successResponse($healthLimit, 'Berhasil mengubah data batas kesehatan.');
         } catch (ModelNotFoundException $e) {
-            return $this->errorResponse('Batas kesehatan tidak ditemukan.', 404, $e->getMessage());
+            return $this->errorResponse('Batas kesehatan tidak ditemukan.', 404);
         } catch (ValidationException $e) {
             return $this->validationErrorResponse($e->errors());
         } catch (\Exception $e) {
-            return $this->errorResponse('Terjadi kesalahan saat mengubah data batas kesehatan.', 500, $e->getMessage());
+            return $this->errorResponse('Terjadi kesalahan saat mengubah data batas kesehatan.', 500);
         }
     }
 
@@ -120,9 +120,9 @@ class HealthLimitController extends Controller
 
             return $this->successResponse(null, 'Berhasil menghapus batas kesehatan.');
         } catch (ModelNotFoundException $e) {
-            return $this->errorResponse('Batas kesehatan tidak ditemukan.', 404, $e->getMessage());
+            return $this->errorResponse('Batas kesehatan tidak ditemukan.', 404);
         } catch (\Exception $e) {
-            return $this->errorResponse('Terjadi kesalahan saat menghapus batas kesehatan.', 500, $e->getMessage());
+            return $this->errorResponse('Terjadi kesalahan saat menghapus batas kesehatan.', 500);
         }
     }
 }
