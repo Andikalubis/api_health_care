@@ -4,28 +4,27 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\TelegramUser;
+use App\Services\TelegramUserService;
 use Illuminate\Http\Request;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Validation\ValidationException;
 
 class TelegramUserController extends Controller
 {
+    protected $service;
+
+    public function __construct(TelegramUserService $service)
+    {
+        $this->service = $service;
+    }
+
     /**
      * Display a listing of the resource.
-     * Mengambil daftar pengguna telegram.
      */
     public function index(Request $request)
     {
         try {
-            $user = $request->user();
-            $query = TelegramUser::with('user');
-
-            if ($user->role->value !== 'admin') {
-                $query->where('user_id', $user->id);
-            }
-
-            $telegramUsers = $query->get();
-
+            $telegramUsers = $this->service->getAll($request, ['user']);
             return $this->successResponse($telegramUsers, 'Berhasil mengambil daftar pengguna telegram.');
         } catch (\Exception $e) {
             return $this->errorResponse('Terjadi kesalahan saat mengambil daftar pengguna telegram.', 500);
@@ -34,7 +33,6 @@ class TelegramUserController extends Controller
 
     /**
      * Store a newly created resource in storage.
-     * Menyimpan pengguna telegram baru ke dalam database.
      */
     public function store(Request $request)
     {
@@ -45,12 +43,11 @@ class TelegramUserController extends Controller
                 'telegram_username' => 'nullable|string|max:100',
             ]);
 
-            if ($request->user()->role->value !== 'admin' && $validated['user_id'] != $request->user()->id) {
+            if (!$request->user()->isAdmin() && $validated['user_id'] != $request->user()->id) {
                 return $this->errorResponse('Akses ditolak untuk mengatur telegram orang lain.', 403);
             }
 
-            $telegramUser = TelegramUser::create($validated);
-
+            $telegramUser = $this->service->create($validated);
             return $this->successResponse($telegramUser, 'Berhasil membuat pengguna telegram baru.', 201);
         } catch (ValidationException $e) {
             return $this->validationErrorResponse($e->errors());
@@ -61,14 +58,13 @@ class TelegramUserController extends Controller
 
     /**
      * Display the specified resource.
-     * Menampilkan detail dari pengguna telegram berdasarkan ID.
      */
     public function show(Request $request, $id)
     {
         try {
-            $telegramUser = TelegramUser::findOrFail($id);
+            $telegramUser = $this->service->findById($id);
 
-            if ($request->user()->role->value !== 'admin' && $telegramUser->user_id !== $request->user()->id) {
+            if (!$this->service->checkOwnership($telegramUser, $request->user())) {
                 return $this->errorResponse('Akses ditolak.', 403);
             }
 
@@ -82,14 +78,13 @@ class TelegramUserController extends Controller
 
     /**
      * Update the specified resource in storage.
-     * Mengubah data pengguna telegram yang sudah ada di database.
      */
     public function update(Request $request, $id)
     {
         try {
-            $telegramUser = TelegramUser::findOrFail($id);
+            $telegramUser = $this->service->findById($id);
 
-            if ($request->user()->role->value !== 'admin' && $telegramUser->user_id !== $request->user()->id) {
+            if (!$this->service->checkOwnership($telegramUser, $request->user())) {
                 return $this->errorResponse('Akses ditolak.', 403);
             }
 
@@ -99,12 +94,11 @@ class TelegramUserController extends Controller
                 'telegram_username' => 'nullable|string|max:100',
             ]);
 
-            if (isset($validated['user_id']) && $request->user()->role->value !== 'admin' && $validated['user_id'] != $request->user()->id) {
+            if (isset($validated['user_id']) && !$request->user()->isAdmin() && $validated['user_id'] != $request->user()->id) {
                 return $this->errorResponse('Akses ditolak untuk memindahkan telegram ke orang lain.', 403);
             }
 
-            $telegramUser->update($validated);
-
+            $telegramUser = $this->service->update($id, $validated);
             return $this->successResponse($telegramUser, 'Berhasil mengubah data pengguna telegram.');
         } catch (ModelNotFoundException $e) {
             return $this->errorResponse('Pengguna telegram tidak ditemukan.', 404);
@@ -117,19 +111,17 @@ class TelegramUserController extends Controller
 
     /**
      * Remove the specified resource from storage.
-     * Menghapus pengguna telegram dari database.
      */
     public function destroy(Request $request, $id)
     {
         try {
-            $telegramUser = TelegramUser::findOrFail($id);
+            $telegramUser = $this->service->findById($id);
 
-            if ($request->user()->role->value !== 'admin' && $telegramUser->user_id !== $request->user()->id) {
+            if (!$this->service->checkOwnership($telegramUser, $request->user())) {
                 return $this->errorResponse('Akses ditolak.', 403);
             }
 
-            $telegramUser->delete();
-
+            $this->service->delete($id);
             return $this->successResponse(null, 'Berhasil menghapus pengguna telegram.');
         } catch (ModelNotFoundException $e) {
             return $this->errorResponse('Pengguna telegram tidak ditemukan.', 404);

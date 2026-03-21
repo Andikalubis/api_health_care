@@ -3,32 +3,30 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\MedicineSchedule;
-use App\Models\PatientData;
+use App\Services\MedicineScheduleService;
+use App\Services\PatientDataService;
 use Illuminate\Http\Request;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Validation\ValidationException;
 
 class MedicineScheduleController extends Controller
 {
+    protected $service;
+    protected $patientService;
+
+    public function __construct(MedicineScheduleService $service, PatientDataService $patientService)
+    {
+        $this->service = $service;
+        $this->patientService = $patientService;
+    }
+
     /**
      * Display a listing of the resource.
-     * Mengambil daftar jadwal obat.
      */
     public function index(Request $request)
     {
         try {
-            $user = $request->user();
-            $query = MedicineSchedule::with(['patient', 'medicine']);
-
-            if ($user->role->value !== 'admin') {
-                $query->whereHas('patient', function ($q) use ($user) {
-                    $q->where('user_id', $user->id);
-                });
-            }
-
-            $schedules = $query->get();
-
+            $schedules = $this->service->getAll($request, ['patient', 'medicine']);
             return $this->successResponse($schedules, 'Berhasil mengambil daftar jadwal obat.');
         } catch (\Exception $e) {
             return $this->errorResponse('Terjadi kesalahan saat mengambil daftar jadwal obat.', 500);
@@ -37,7 +35,6 @@ class MedicineScheduleController extends Controller
 
     /**
      * Store a newly created resource in storage.
-     * Menyimpan jadwal obat baru ke dalam database.
      */
     public function store(Request $request)
     {
@@ -52,18 +49,17 @@ class MedicineScheduleController extends Controller
                 'notes' => 'nullable|string',
             ]);
 
-            if ($request->user()->role->value !== 'admin') {
-                $patient = PatientData::find($validated['patient_id']);
-                if ($patient->user_id !== $request->user()->id) {
-                    return $this->errorResponse('Akses ditolak untuk menambahkan data pada pasien ini.', 403);
-                }
+            $patient = $this->patientService->findById($validated['patient_id']);
+            if (!$this->patientService->checkOwnership($patient, $request->user())) {
+                return $this->errorResponse('Akses ditolak untuk menambahkan data pada pasien ini.', 403);
             }
 
-            $schedule = MedicineSchedule::create($validated);
-
+            $schedule = $this->service->create($validated);
             return $this->successResponse($schedule, 'Berhasil membuat jadwal obat baru.', 201);
         } catch (ValidationException $e) {
             return $this->validationErrorResponse($e->errors());
+        } catch (ModelNotFoundException $e) {
+            return $this->errorResponse('Pasien tidak ditemukan.', 404);
         } catch (\Exception $e) {
             return $this->errorResponse('Terjadi kesalahan saat membuat jadwal obat.', 500);
         }
@@ -71,14 +67,13 @@ class MedicineScheduleController extends Controller
 
     /**
      * Display the specified resource.
-     * Menampilkan detail dari jadwal obat berdasarkan ID.
      */
     public function show(Request $request, $id)
     {
         try {
-            $medicineSchedule = MedicineSchedule::findOrFail($id);
+            $medicineSchedule = $this->service->findById($id);
 
-            if ($request->user()->role->value !== 'admin' && $medicineSchedule->patient->user_id !== $request->user()->id) {
+            if (!$this->service->checkOwnership($medicineSchedule, $request->user())) {
                 return $this->errorResponse('Akses ditolak.', 403);
             }
 
@@ -92,14 +87,13 @@ class MedicineScheduleController extends Controller
 
     /**
      * Update the specified resource in storage.
-     * Mengubah data jadwal obat yang sudah ada di database.
      */
     public function update(Request $request, $id)
     {
         try {
-            $medicineSchedule = MedicineSchedule::findOrFail($id);
+            $medicineSchedule = $this->service->findById($id);
 
-            if ($request->user()->role->value !== 'admin' && $medicineSchedule->patient->user_id !== $request->user()->id) {
+            if (!$this->service->checkOwnership($medicineSchedule, $request->user())) {
                 return $this->errorResponse('Akses ditolak.', 403);
             }
 
@@ -113,15 +107,14 @@ class MedicineScheduleController extends Controller
                 'notes' => 'nullable|string',
             ]);
 
-            if (isset($validated['patient_id']) && $request->user()->role->value !== 'admin') {
-                $patient = PatientData::find($validated['patient_id']);
-                if ($patient->user_id !== $request->user()->id) {
+            if (isset($validated['patient_id'])) {
+                $patient = $this->patientService->findById($validated['patient_id']);
+                if (!$this->patientService->checkOwnership($patient, $request->user())) {
                     return $this->errorResponse('Akses ditolak untuk memindahkan data ke pasien ini.', 403);
                 }
             }
 
-            $medicineSchedule->update($validated);
-
+            $medicineSchedule = $this->service->update($id, $validated);
             return $this->successResponse($medicineSchedule, 'Berhasil mengubah data jadwal obat.');
         } catch (ModelNotFoundException $e) {
             return $this->errorResponse('Jadwal obat tidak ditemukan.', 404);
@@ -134,19 +127,17 @@ class MedicineScheduleController extends Controller
 
     /**
      * Remove the specified resource from storage.
-     * Menghapus jadwal obat dari database.
      */
     public function destroy(Request $request, $id)
     {
         try {
-            $medicineSchedule = MedicineSchedule::findOrFail($id);
+            $medicineSchedule = $this->service->findById($id);
 
-            if ($request->user()->role->value !== 'admin' && $medicineSchedule->patient->user_id !== $request->user()->id) {
+            if (!$this->service->checkOwnership($medicineSchedule, $request->user())) {
                 return $this->errorResponse('Akses ditolak.', 403);
             }
 
-            $medicineSchedule->delete();
-
+            $this->service->delete($id);
             return $this->successResponse(null, 'Berhasil menghapus jadwal obat.');
         } catch (ModelNotFoundException $e) {
             return $this->errorResponse('Jadwal obat tidak ditemukan.', 404);

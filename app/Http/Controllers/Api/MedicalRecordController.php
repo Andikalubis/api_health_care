@@ -3,19 +3,26 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\HealthCheck;
 use App\Models\PatientData;
-use App\Models\VitalSign;
+use App\Services\MedicalRecordService;
+use App\Services\PatientDataService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Validation\ValidationException;
 
 class MedicalRecordController extends Controller
 {
+    protected $service;
+    protected $patientService;
+
+    public function __construct(MedicalRecordService $service, PatientDataService $patientService)
+    {
+        $this->service = $service;
+        $this->patientService = $patientService;
+    }
+
     /**
      * Store a combined medical record (Vital Signs and Health Checks).
-     * Menyimpan rekam medis gabungan (Tanda-tanda Vital dan Cek Kesehatan).
      */
     public function store(Request $request)
     {
@@ -38,40 +45,15 @@ class MedicalRecordController extends Controller
                 'health_checks.*.notes' => 'nullable|string',
             ]);
 
-            $user = $request->user();
-            $patient = PatientData::findOrFail($validated['patient_id']);
+            $patient = $this->patientService->findById($validated['patient_id']);
 
-            // Ownership check
-            if ($user->role->value !== 'admin' && $patient->user_id !== $user->id) {
+            if (!$this->patientService->checkOwnership($patient, $request->user())) {
                 return $this->errorResponse('Akses ditolak untuk menambahkan data pada pasien ini.', 403);
             }
 
-            return DB::transaction(function () use ($validated, $patient) {
-                $results = [];
+            $results = $this->service->storeCombinedRecord($validated);
 
-                // 1. Save Vital Signs if provided
-                if (!empty($validated['vital_signs'])) {
-                    $vitalSignData = array_merge($validated['vital_signs'], [
-                        'patient_id' => $patient->id,
-                        'check_time' => $validated['check_time'],
-                    ]);
-                    $results['vital_signs'] = VitalSign::create($vitalSignData);
-                }
-
-                // 2. Save Health Checks if provided
-                if (!empty($validated['health_checks'])) {
-                    $results['health_checks'] = [];
-                    foreach ($validated['health_checks'] as $check) {
-                        $checkData = array_merge($check, [
-                            'patient_id' => $patient->id,
-                            'check_time' => $validated['check_time'],
-                        ]);
-                        $results['health_checks'][] = HealthCheck::create($checkData);
-                    }
-                }
-
-                return $this->successResponse($results, 'Berhasil menyimpan rekam medis.', 201);
-            });
+            return $this->successResponse($results, 'Berhasil menyimpan rekam medis.', 201);
         } catch (ValidationException $e) {
             return $this->validationErrorResponse($e->errors());
         } catch (ModelNotFoundException $e) {
@@ -83,34 +65,19 @@ class MedicalRecordController extends Controller
 
     /**
      * Get integrated detailed medical data for a patient.
-     * Mengambil detail terintegrasi data medis untuk pasien.
      */
     public function show(Request $request, $patient_id)
     {
         try {
-            $user = $request->user();
-            $patient = PatientData::findOrFail($patient_id);
+            $patient = $this->patientService->findById($patient_id);
 
-            // Ownership check
-            if ($user->role->value !== 'admin' && $patient->user_id !== $user->id) {
+            if (!$this->patientService->checkOwnership($patient, $request->user())) {
                 return $this->errorResponse('Akses ditolak.', 403);
             }
 
-            // Fetch vital signs and health checks together
-            $vitalSigns = VitalSign::where('patient_id', $patient->id)
-                ->orderBy('check_time', 'desc')
-                ->get();
+            $results = $this->service->getIntegratedRecords($patient_id);
 
-            $healthChecks = HealthCheck::with('healthType')
-                ->where('patient_id', $patient->id)
-                ->orderBy('check_time', 'desc')
-                ->get();
-
-            return $this->successResponse([
-                'patient' => $patient,
-                'vital_signs' => $vitalSigns,
-                'health_checks' => $healthChecks,
-            ], 'Berhasil mengambil detail rekam medis terpadu.');
+            return $this->successResponse($results, 'Berhasil mengambil detail rekam medis terpadu.');
         } catch (ModelNotFoundException $e) {
             return $this->errorResponse('Pasien tidak ditemukan.', 404);
         } catch (\Exception $e) {

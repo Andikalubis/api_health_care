@@ -3,29 +3,27 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\PatientData;
+use App\Services\PatientDataService;
 use Illuminate\Http\Request;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Validation\ValidationException;
 
 class PatientDataController extends Controller
 {
+    protected $service;
+
+    public function __construct(PatientDataService $service)
+    {
+        $this->service = $service;
+    }
+
     /**
      * Display a listing of the resource.
-     * Mengambil daftar data pasien.
      */
     public function index(Request $request)
     {
         try {
-            $user = $request->user();
-            $query = PatientData::with('user');
-
-            if ($user->role->value !== 'admin') {
-                $query->where('user_id', $user->id);
-            }
-
-            $patientData = $query->get();
-
+            $patientData = $this->service->getAll($request, ['user']);
             return $this->successResponse($patientData, 'Berhasil mengambil daftar data pasien.');
         } catch (\Exception $e) {
             return $this->errorResponse('Terjadi kesalahan saat mengambil daftar data pasien.', 500);
@@ -34,7 +32,6 @@ class PatientDataController extends Controller
 
     /**
      * Store a newly created resource in storage.
-     * Menyimpan data pasien baru ke dalam database.
      */
     public function store(Request $request)
     {
@@ -49,7 +46,7 @@ class PatientDataController extends Controller
                 'blood_type' => 'required|string|max:5',
             ]);
 
-            $patientData = PatientData::create($validated);
+            $patientData = $this->service->create($validated);
 
             return $this->successResponse($patientData, 'Berhasil membuat data pasien baru.', 201);
         } catch (ValidationException $e) {
@@ -61,14 +58,13 @@ class PatientDataController extends Controller
 
     /**
      * Display the specified resource.
-     * Menampilkan detail dari data pasien berdasarkan ID.
      */
     public function show(Request $request, $id)
     {
         try {
-            $patientData = PatientData::findOrFail($id);
+            $patientData = $this->service->findById($id);
 
-            if ($request->user()->role->value !== 'admin' && $patientData->user_id !== $request->user()->id) {
+            if (!$this->service->checkOwnership($patientData, $request->user())) {
                 return $this->errorResponse('Akses ditolak.', 403);
             }
 
@@ -82,14 +78,13 @@ class PatientDataController extends Controller
 
     /**
      * Update the specified resource in storage.
-     * Mengubah data pasien yang sudah ada di database.
      */
     public function update(Request $request, $id)
     {
         try {
-            $patientData = PatientData::findOrFail($id);
+            $patientData = $this->service->findById($id);
 
-            if ($request->user()->role->value !== 'admin' && $patientData->user_id !== $request->user()->id) {
+            if (!$this->service->checkOwnership($patientData, $request->user())) {
                 return $this->errorResponse('Akses ditolak.', 403);
             }
 
@@ -103,7 +98,7 @@ class PatientDataController extends Controller
                 'blood_type' => 'sometimes|required|string|max:5',
             ]);
 
-            $patientData->update($validated);
+            $patientData = $this->service->update($id, $validated);
 
             return $this->successResponse($patientData, 'Berhasil mengubah data pasien.');
         } catch (ModelNotFoundException $e) {
@@ -117,18 +112,17 @@ class PatientDataController extends Controller
 
     /**
      * Remove the specified resource from storage.
-     * Menghapus data pasien dari database.
      */
     public function destroy(Request $request, $id)
     {
         try {
-            $patientData = PatientData::findOrFail($id);
+            $patientData = $this->service->findById($id);
 
-            if ($request->user()->role->value !== 'admin' && $patientData->user_id !== $request->user()->id) {
+            if (!$this->service->checkOwnership($patientData, $request->user())) {
                 return $this->errorResponse('Akses ditolak.', 403);
             }
 
-            $patientData->delete();
+            $this->service->delete($id);
 
             return $this->successResponse(null, 'Berhasil menghapus data pasien.');
         } catch (ModelNotFoundException $e) {

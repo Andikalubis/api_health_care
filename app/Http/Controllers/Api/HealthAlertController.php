@@ -3,32 +3,30 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\HealthAlert;
-use App\Models\HealthCheck;
+use App\Services\HealthAlertService;
+use App\Services\HealthCheckService;
 use Illuminate\Http\Request;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Validation\ValidationException;
 
 class HealthAlertController extends Controller
 {
+    protected $service;
+    protected $healthCheckService;
+
+    public function __construct(HealthAlertService $service, HealthCheckService $healthCheckService)
+    {
+        $this->service = $service;
+        $this->healthCheckService = $healthCheckService;
+    }
+
     /**
      * Display a listing of the resource.
-     * Mengambil daftar peringatan kesehatan.
      */
     public function index(Request $request)
     {
         try {
-            $user = $request->user();
-            $query = HealthAlert::with('healthCheck');
-
-            if ($user->role->value !== 'admin') {
-                $query->whereHas('healthCheck.patient', function ($q) use ($user) {
-                    $q->where('user_id', $user->id);
-                });
-            }
-
-            $alerts = $query->get();
-
+            $alerts = $this->service->getAll($request, ['healthCheck']);
             return $this->successResponse($alerts, 'Berhasil mengambil daftar peringatan kesehatan.');
         } catch (\Exception $e) {
             return $this->errorResponse('Terjadi kesalahan saat mengambil daftar peringatan kesehatan.', 500);
@@ -37,7 +35,6 @@ class HealthAlertController extends Controller
 
     /**
      * Store a newly created resource in storage.
-     * Menyimpan peringatan kesehatan baru ke dalam database.
      */
     public function store(Request $request)
     {
@@ -49,18 +46,17 @@ class HealthAlertController extends Controller
                 'sent_status' => 'boolean',
             ]);
 
-            if ($request->user()->role->value !== 'admin') {
-                $healthCheck = HealthCheck::with('patient')->find($validated['health_check_id']);
-                if ($healthCheck && $healthCheck->patient->user_id !== $request->user()->id) {
-                    return $this->errorResponse('Akses ditolak untuk menambahkan peringatan pada cek kesehatan ini.', 403);
-                }
+            $healthCheck = $this->healthCheckService->findById($validated['health_check_id']);
+            if (!$this->healthCheckService->checkOwnership($healthCheck, $request->user())) {
+                return $this->errorResponse('Akses ditolak untuk menambahkan peringatan pada cek kesehatan ini.', 403);
             }
 
-            $alert = HealthAlert::create($validated);
-
+            $alert = $this->service->create($validated);
             return $this->successResponse($alert, 'Berhasil membuat peringatan kesehatan baru.', 201);
         } catch (ValidationException $e) {
             return $this->validationErrorResponse($e->errors());
+        } catch (ModelNotFoundException $e) {
+            return $this->errorResponse('Cek kesehatan tidak ditemukan.', 404);
         } catch (\Exception $e) {
             return $this->errorResponse('Terjadi kesalahan saat membuat peringatan kesehatan.', 500);
         }
@@ -68,14 +64,13 @@ class HealthAlertController extends Controller
 
     /**
      * Display the specified resource.
-     * Menampilkan detail dari peringatan kesehatan berdasarkan ID.
      */
     public function show(Request $request, $id)
     {
         try {
-            $healthAlert = HealthAlert::findOrFail($id);
+            $healthAlert = $this->service->findById($id);
 
-            if ($request->user()->role->value !== 'admin' && $healthAlert->healthCheck->patient->user_id !== $request->user()->id) {
+            if (!$this->service->checkOwnership($healthAlert, $request->user())) {
                 return $this->errorResponse('Akses ditolak.', 403);
             }
 
@@ -89,14 +84,13 @@ class HealthAlertController extends Controller
 
     /**
      * Update the specified resource in storage.
-     * Mengubah data peringatan kesehatan yang sudah ada di database.
      */
     public function update(Request $request, $id)
     {
         try {
-            $healthAlert = HealthAlert::findOrFail($id);
+            $healthAlert = $this->service->findById($id);
 
-            if ($request->user()->role->value !== 'admin' && $healthAlert->healthCheck->patient->user_id !== $request->user()->id) {
+            if (!$this->service->checkOwnership($healthAlert, $request->user())) {
                 return $this->errorResponse('Akses ditolak.', 403);
             }
 
@@ -107,15 +101,14 @@ class HealthAlertController extends Controller
                 'sent_status' => 'boolean',
             ]);
 
-            if (isset($validated['health_check_id']) && $request->user()->role->value !== 'admin') {
-                $healthCheck = HealthCheck::with('patient')->find($validated['health_check_id']);
-                if ($healthCheck && $healthCheck->patient->user_id !== $request->user()->id) {
+            if (isset($validated['health_check_id'])) {
+                $healthCheck = $this->healthCheckService->findById($validated['health_check_id']);
+                if (!$this->healthCheckService->checkOwnership($healthCheck, $request->user())) {
                     return $this->errorResponse('Akses ditolak untuk memindahkan peringatan ke cek kesehatan ini.', 403);
                 }
             }
 
-            $healthAlert->update($validated);
-
+            $healthAlert = $this->service->update($id, $validated);
             return $this->successResponse($healthAlert, 'Berhasil mengubah data peringatan kesehatan.');
         } catch (ModelNotFoundException $e) {
             return $this->errorResponse('Peringatan kesehatan tidak ditemukan.', 404);
@@ -128,19 +121,17 @@ class HealthAlertController extends Controller
 
     /**
      * Remove the specified resource from storage.
-     * Menghapus peringatan kesehatan dari database.
      */
     public function destroy(Request $request, $id)
     {
         try {
-            $healthAlert = HealthAlert::findOrFail($id);
+            $healthAlert = $this->service->findById($id);
 
-            if ($request->user()->role->value !== 'admin' && $healthAlert->healthCheck->patient->user_id !== $request->user()->id) {
+            if (!$this->service->checkOwnership($healthAlert, $request->user())) {
                 return $this->errorResponse('Akses ditolak.', 403);
             }
 
-            $healthAlert->delete();
-
+            $this->service->delete($id);
             return $this->successResponse(null, 'Berhasil menghapus peringatan kesehatan.');
         } catch (ModelNotFoundException $e) {
             return $this->errorResponse('Peringatan kesehatan tidak ditemukan.', 404);

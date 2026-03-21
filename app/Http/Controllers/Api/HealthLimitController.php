@@ -4,21 +4,27 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\HealthLimit;
+use App\Services\HealthLimitService;
 use Illuminate\Http\Request;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Validation\ValidationException;
 
 class HealthLimitController extends Controller
 {
+    protected $service;
+
+    public function __construct(HealthLimitService $service)
+    {
+        $this->service = $service;
+    }
+
     /**
      * Display a listing of the resource.
-     * Mengambil daftar batas kesehatan.
      */
-    public function index()
+    public function index(Request $request)
     {
         try {
-            $limits = HealthLimit::with('healthType')->get();
-
+            $limits = $this->service->getAll($request, ['healthType']);
             return $this->successResponse($limits, 'Berhasil mengambil daftar batas kesehatan.');
         } catch (\Exception $e) {
             return $this->errorResponse('Terjadi kesalahan saat mengambil daftar batas kesehatan.', 500);
@@ -27,12 +33,11 @@ class HealthLimitController extends Controller
 
     /**
      * Store a newly created resource in storage.
-     * Menyimpan batas kesehatan baru ke dalam database.
      */
     public function store(Request $request)
     {
         try {
-            if ($request->user()->role->value !== 'admin') {
+            if (!$request->user()->isAdmin()) {
                 return $this->errorResponse('Hanya admin yang dapat mengatur batas kesehatan.', 403);
             }
 
@@ -44,8 +49,7 @@ class HealthLimitController extends Controller
                 'danger_max' => 'required|numeric',
             ]);
 
-            $limit = HealthLimit::create($validated);
-
+            $limit = $this->service->create($validated);
             return $this->successResponse($limit, 'Berhasil membuat batas kesehatan baru.', 201);
         } catch (ValidationException $e) {
             return $this->validationErrorResponse($e->errors());
@@ -56,12 +60,15 @@ class HealthLimitController extends Controller
 
     /**
      * Display the specified resource.
-     * Menampilkan detail dari batas kesehatan berdasarkan ID.
      */
-    public function show($id)
+    public function show(Request $request, $id)
     {
         try {
-            $healthLimit = HealthLimit::findOrFail($id);
+            $healthLimit = $this->service->findById($id);
+
+            if (!$this->service->checkOwnership($healthLimit, $request->user())) {
+                return $this->errorResponse('Akses ditolak.', 403);
+            }
 
             return $this->successResponse($healthLimit->load('healthType'), 'Berhasil mengambil detail batas kesehatan.');
         } catch (ModelNotFoundException $e) {
@@ -73,16 +80,19 @@ class HealthLimitController extends Controller
 
     /**
      * Update the specified resource in storage.
-     * Mengubah data batas kesehatan yang sudah ada di database.
      */
     public function update(Request $request, $id)
     {
         try {
-            if ($request->user()->role->value !== 'admin') {
+            if (!$request->user()->isAdmin()) {
                 return $this->errorResponse('Hanya admin yang dapat mengubah batas kesehatan.', 403);
             }
 
-            $healthLimit = HealthLimit::findOrFail($id);
+            $healthLimit = $this->service->findById($id);
+
+            if (!$this->service->checkOwnership($healthLimit, $request->user())) {
+                return $this->errorResponse('Akses ditolak.', 403);
+            }
 
             $validated = $request->validate([
                 'health_type_id' => 'sometimes|required|exists:health_types,id',
@@ -92,8 +102,7 @@ class HealthLimitController extends Controller
                 'danger_max' => 'sometimes|required|numeric',
             ]);
 
-            $healthLimit->update($validated);
-
+            $healthLimit = $this->service->update($id, $validated);
             return $this->successResponse($healthLimit, 'Berhasil mengubah data batas kesehatan.');
         } catch (ModelNotFoundException $e) {
             return $this->errorResponse('Batas kesehatan tidak ditemukan.', 404);
@@ -106,18 +115,21 @@ class HealthLimitController extends Controller
 
     /**
      * Remove the specified resource from storage.
-     * Menghapus batas kesehatan dari database.
      */
     public function destroy(Request $request, $id)
     {
         try {
-            if ($request->user()->role->value !== 'admin') {
+            if (!$request->user()->isAdmin()) {
                 return $this->errorResponse('Hanya admin yang dapat menghapus batas kesehatan.', 403);
             }
 
-            $healthLimit = HealthLimit::findOrFail($id);
-            $healthLimit->delete();
+            $healthLimit = $this->service->findById($id);
 
+            if (!$this->service->checkOwnership($healthLimit, $request->user())) {
+                return $this->errorResponse('Akses ditolak.', 403);
+            }
+
+            $this->service->delete($id);
             return $this->successResponse(null, 'Berhasil menghapus batas kesehatan.');
         } catch (ModelNotFoundException $e) {
             return $this->errorResponse('Batas kesehatan tidak ditemukan.', 404);

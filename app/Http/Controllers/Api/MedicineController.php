@@ -4,20 +4,27 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Medicine;
+use App\Services\MedicineService;
 use Illuminate\Http\Request;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Validation\ValidationException;
 
 class MedicineController extends Controller
 {
+    protected $service;
+
+    public function __construct(MedicineService $service)
+    {
+        $this->service = $service;
+    }
+
     /**
      * Display a listing of the resource.
-     * Mengambil semua daftar obat.
      */
-    public function index()
+    public function index(Request $request)
     {
         try {
-            $medicines = Medicine::all();
+            $medicines = $this->service->getAll($request);
             return $this->successResponse($medicines, 'Berhasil mengambil daftar obat.');
         } catch (\Exception $e) {
             return $this->errorResponse('Terjadi kesalahan saat mengambil daftar obat.', 500);
@@ -26,7 +33,6 @@ class MedicineController extends Controller
 
     /**
      * Store a newly created resource in storage.
-     * Menyimpan obat baru ke dalam database.
      */
     public function store(Request $request)
     {
@@ -36,8 +42,7 @@ class MedicineController extends Controller
                 'description' => 'nullable|string',
             ]);
 
-            $medicine = Medicine::create($validated);
-
+            $medicine = $this->service->create($validated);
             return $this->successResponse($medicine, 'Berhasil membuat obat baru.', 201);
         } catch (ValidationException $e) {
             return $this->validationErrorResponse($e->errors());
@@ -48,13 +53,11 @@ class MedicineController extends Controller
 
     /**
      * Display the specified resource.
-     * Menampilkan detail dari satu obat berdasarkan ID.
      */
     public function show($id)
     {
         try {
-            $medicine = Medicine::findOrFail($id);
-
+            $medicine = $this->service->findById($id);
             return $this->successResponse($medicine, 'Berhasil mengambil detail obat.');
         } catch (ModelNotFoundException $e) {
             return $this->errorResponse('Obat tidak ditemukan.', 404);
@@ -65,20 +68,16 @@ class MedicineController extends Controller
 
     /**
      * Update the specified resource in storage.
-     * Mengubah data obat yang sudah ada di database.
      */
     public function update(Request $request, $id)
     {
         try {
-            $medicine = Medicine::findOrFail($id);
-
             $validated = $request->validate([
                 'name' => 'sometimes|required|string|max:100',
                 'description' => 'nullable|string',
             ]);
 
-            $medicine->update($validated);
-
+            $medicine = $this->service->update($id, $validated);
             return $this->successResponse($medicine, 'Berhasil mengubah data obat.');
         } catch (ModelNotFoundException $e) {
             return $this->errorResponse('Obat tidak ditemukan.', 404);
@@ -91,14 +90,11 @@ class MedicineController extends Controller
 
     /**
      * Remove the specified resource from storage.
-     * Menghapus obat dari database.
      */
     public function destroy($id)
     {
         try {
-            $medicine = Medicine::findOrFail($id);
-            $medicine->delete();
-
+            $this->service->delete($id);
             return $this->successResponse(null, 'Berhasil menghapus obat.');
         } catch (ModelNotFoundException $e) {
             return $this->errorResponse('Obat tidak ditemukan.', 404);

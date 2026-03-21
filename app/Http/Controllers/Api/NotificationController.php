@@ -4,28 +4,27 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Notification;
+use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Validation\ValidationException;
 
 class NotificationController extends Controller
 {
+    protected $service;
+
+    public function __construct(NotificationService $service)
+    {
+        $this->service = $service;
+    }
+
     /**
      * Display a listing of the resource.
-     * Mengambil daftar notifikasi.
      */
     public function index(Request $request)
     {
         try {
-            $user = $request->user();
-            $query = Notification::with('user');
-
-            if ($user->role->value !== 'admin') {
-                $query->where('user_id', $user->id);
-            }
-
-            $notifications = $query->get();
-
+            $notifications = $this->service->getAll($request, ['user']);
             return $this->successResponse($notifications, 'Berhasil mengambil daftar notifikasi.');
         } catch (\Exception $e) {
             return $this->errorResponse('Terjadi kesalahan saat mengambil daftar notifikasi.', 500);
@@ -34,7 +33,6 @@ class NotificationController extends Controller
 
     /**
      * Store a newly created resource in storage.
-     * Menyimpan notifikasi baru ke dalam database.
      */
     public function store(Request $request)
     {
@@ -47,12 +45,11 @@ class NotificationController extends Controller
                 'send_time' => 'required|date',
             ]);
 
-            if ($request->user()->role->value !== 'admin' && $validated['user_id'] != $request->user()->id) {
+            if (!$request->user()->isAdmin() && $validated['user_id'] != $request->user()->id) {
                 return $this->errorResponse('Akses ditolak untuk mengirim notifikasi ke pengguna lain.', 403);
             }
 
-            $notification = Notification::create($validated);
-
+            $notification = $this->service->create($validated);
             return $this->successResponse($notification, 'Berhasil membuat notifikasi baru.', 201);
         } catch (ValidationException $e) {
             return $this->validationErrorResponse($e->errors());
@@ -63,14 +60,13 @@ class NotificationController extends Controller
 
     /**
      * Display the specified resource.
-     * Menampilkan detail dari notifikasi berdasarkan ID.
      */
     public function show(Request $request, $id)
     {
         try {
-            $notification = Notification::findOrFail($id);
+            $notification = $this->service->findById($id);
 
-            if ($request->user()->role->value !== 'admin' && $notification->user_id !== $request->user()->id) {
+            if (!$this->service->checkOwnership($notification, $request->user())) {
                 return $this->errorResponse('Akses ditolak.', 403);
             }
 
@@ -84,14 +80,13 @@ class NotificationController extends Controller
 
     /**
      * Update the specified resource in storage.
-     * Mengubah data notifikasi yang sudah ada di database.
      */
     public function update(Request $request, $id)
     {
         try {
-            $notification = Notification::findOrFail($id);
+            $notification = $this->service->findById($id);
 
-            if ($request->user()->role->value !== 'admin' && $notification->user_id !== $request->user()->id) {
+            if (!$this->service->checkOwnership($notification, $request->user())) {
                 return $this->errorResponse('Akses ditolak.', 403);
             }
 
@@ -103,12 +98,11 @@ class NotificationController extends Controller
                 'send_time' => 'sometimes|required|date',
             ]);
 
-            if (isset($validated['user_id']) && $request->user()->role->value !== 'admin' && $validated['user_id'] != $request->user()->id) {
+            if (isset($validated['user_id']) && !$request->user()->isAdmin() && $validated['user_id'] != $request->user()->id) {
                 return $this->errorResponse('Akses ditolak untuk memindahkan notifikasi ke pengguna lain.', 403);
             }
 
-            $notification->update($validated);
-
+            $notification = $this->service->update($id, $validated);
             return $this->successResponse($notification, 'Berhasil mengubah data notifikasi.');
         } catch (ModelNotFoundException $e) {
             return $this->errorResponse('Notifikasi tidak ditemukan.', 404);
@@ -121,19 +115,17 @@ class NotificationController extends Controller
 
     /**
      * Remove the specified resource from storage.
-     * Menghapus notifikasi dari database.
      */
     public function destroy(Request $request, $id)
     {
         try {
-            $notification = Notification::findOrFail($id);
+            $notification = $this->service->findById($id);
 
-            if ($request->user()->role->value !== 'admin' && $notification->user_id !== $request->user()->id) {
+            if (!$this->service->checkOwnership($notification, $request->user())) {
                 return $this->errorResponse('Akses ditolak.', 403);
             }
 
-            $notification->delete();
-
+            $this->service->delete($id);
             return $this->successResponse(null, 'Berhasil menghapus notifikasi.');
         } catch (ModelNotFoundException $e) {
             return $this->errorResponse('Notifikasi tidak ditemukan.', 404);

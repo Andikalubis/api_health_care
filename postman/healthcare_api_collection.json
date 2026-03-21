@@ -1,0 +1,261 @@
+{
+	"info": {
+		"_postman_id": "7a3b4c1d-15e9-4e8c-9a1b-3c4d5e6f7a8b",
+		"name": "HealthCare API Collection",
+		"description": "Comprehensive API collection for the HealthCare application, covering Auth and all 17 resources/services with full CRUD operations and specialized monitoring.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Auth",
+			"item": [
+				{
+					"name": "Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"if (jsonData.data && jsonData.data.access_token) {",
+									"    pm.environment.set(\"access_token\", jsonData.data.access_token);",
+									"    pm.environment.set(\"refresh_token\", jsonData.data.refresh_token);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Accept", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"admin@example.com\",\n    \"password\": \"password\"\n}",
+							"options": { "raw": { "language": "json" } }
+						},
+						"url": { "raw": "{{base_url}}/api/login", "host": ["{{base_url}}"], "path": ["api", "login"] }
+					}
+				},
+				{
+					"name": "Register",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Accept", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"New User\",\n    \"email\": \"newuser@example.com\",\n    \"password\": \"password\",\n    \"password_confirmation\": \"password\",\n    \"role\": \"user\"\n}",
+							"options": { "raw": { "language": "json" } }
+						},
+						"url": { "raw": "{{base_url}}/api/register", "host": ["{{base_url}}"], "path": ["api", "register"] }
+					}
+				},
+				{
+					"name": "Refresh Token",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"if (jsonData.data && jsonData.data.access_token) {",
+									"    pm.environment.set(\"access_token\", jsonData.data.access_token);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Accept", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"refresh_token\": \"{{refresh_token}}\"\n}",
+							"options": { "raw": { "language": "json" } }
+						},
+						"url": { "raw": "{{base_url}}/api/refresh", "host": ["{{base_url}}"], "path": ["api", "refresh"] }
+					}
+				},
+				{
+					"name": "Logout",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Accept", "value": "application/json" },
+							{ "key": "Authorization", "value": "Bearer {{access_token}}" }
+						],
+						"url": { "raw": "{{base_url}}/api/logout", "host": ["{{base_url}}"], "path": ["api", "logout"] }
+					}
+				}
+			]
+		},
+		{
+			"name": "Patients",
+			"item": [
+				{ "name": "List Patients", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }], "url": { "raw": "{{base_url}}/api/patients", "host": ["{{base_url}}"], "path": ["api", "patients"] } } },
+				{ "name": "Create Patient", "request": { "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n    \"user_id\": 1,\n    \"full_name\": \"John Doe\",\n    \"gender\": \"male\",\n    \"birth_date\": \"1990-01-01\",\n    \"address\": \"Street 123\",\n    \"phone_number\": \"08123456789\"\n}" }, "url": { "raw": "{{base_url}}/api/patients", "host": ["{{base_url}}"], "path": ["api", "patients"] } } },
+				{ "name": "Show Patient", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }], "url": { "raw": "{{base_url}}/api/patients/1", "host": ["{{base_url}}"], "path": ["api", "patients", "1"] } } },
+				{ "name": "Update Patient", "request": { "method": "PUT", "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n    \"full_name\": \"John Doe Updated\"\n}" }, "url": { "raw": "{{base_url}}/api/patients/1", "host": ["{{base_url}}"], "path": ["api", "patients", "1"] } } },
+				{ "name": "Delete Patient", "request": { "method": "DELETE", "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }], "url": { "raw": "{{base_url}}/api/patients/1", "host": ["{{base_url}}"], "path": ["api", "patients", "1"] } } }
+			]
+		},
+		{
+			"name": "Health Checks",
+			"item": [
+				{ "name": "List Health Checks", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }], "url": { "raw": "{{base_url}}/api/health-checks", "host": ["{{base_url}}"], "path": ["api", "health-checks"] } } },
+				{ "name": "Create Health Check", "request": { "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n    \"patient_id\": 1,\n    \"health_type_id\": 1,\n    \"value\": 120,\n    \"check_time\": \"2023-10-27 10:00:00\",\n    \"notes\": \"After exercise\"\n}" }, "url": { "raw": "{{base_url}}/api/health-checks", "host": ["{{base_url}}"], "path": ["api", "health-checks"] } } },
+				{ "name": "Show Health Check", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }], "url": { "raw": "{{base_url}}/api/health-checks/1", "host": ["{{base_url}}"], "path": ["api", "health-checks", "1"] } } },
+				{ "name": "Update Health Check", "request": { "method": "PUT", "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n    \"value\": 115\n}" }, "url": { "raw": "{{base_url}}/api/health-checks/1", "host": ["{{base_url}}"], "path": ["api", "health-checks", "1"] } } },
+				{ "name": "Delete Health Check", "request": { "method": "DELETE", "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }], "url": { "raw": "{{base_url}}/api/health-checks/1", "host": ["{{base_url}}"], "path": ["api", "health-checks", "1"] } } }
+			]
+		},
+		{
+			"name": "Vital Signs",
+			"item": [
+				{ "name": "List Vital Signs", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }], "url": { "raw": "{{base_url}}/api/vital-signs", "host": ["{{base_url}}"], "path": ["api", "vital-signs"] } } },
+				{ "name": "Create Vital Sign", "request": { "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n    \"patient_id\": 1,\n    \"systolic\": 120,\n    \"diastolic\": 80,\n    \"heart_rate\": 72,\n    \"temperature\": 36.5,\n    \"weight\": 70,\n    \"check_time\": \"2023-10-27 10:00:00\"\n}" }, "url": { "raw": "{{base_url}}/api/vital-signs", "host": ["{{base_url}}"], "path": ["api", "vital-signs"] } } },
+				{ "name": "Show Vital Sign", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }], "url": { "raw": "{{base_url}}/api/vital-signs/1", "host": ["{{base_url}}"], "path": ["api", "vital-signs", "1"] } } },
+				{ "name": "Update Vital Sign", "request": { "method": "PUT", "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n    \"weight\": 71\n}" }, "url": { "raw": "{{base_url}}/api/vital-signs/1", "host": ["{{base_url}}"], "path": ["api", "vital-signs", "1"] } } },
+				{ "name": "Delete Vital Sign", "request": { "method": "DELETE", "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }], "url": { "raw": "{{base_url}}/api/vital-signs/1", "host": ["{{base_url}}"], "path": ["api", "vital-signs", "1"] } } }
+			]
+		},
+		{
+			"name": "Medicines",
+			"item": [
+				{ "name": "List Medicines", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }], "url": { "raw": "{{base_url}}/api/medicines", "host": ["{{base_url}}"], "path": ["api", "medicines"] } } },
+				{ "name": "Create Medicine", "request": { "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n    \"name\": \"Paracetamol\",\n    \"description\": \"500mg tablett\"\n}" }, "url": { "raw": "{{base_url}}/api/medicines", "host": ["{{base_url}}"], "path": ["api", "medicines"] } } },
+				{ "name": "Show Medicine", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }], "url": { "raw": "{{base_url}}/api/medicines/1", "host": ["{{base_url}}"], "path": ["api", "medicines", "1"] } } },
+				{ "name": "Update Medicine", "request": { "method": "PUT", "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n    \"description\": \"600mg tablett\"\n}" }, "url": { "raw": "{{base_url}}/api/medicines/1", "host": ["{{base_url}}"], "path": ["api", "medicines", "1"] } } },
+				{ "name": "Delete Medicine", "request": { "method": "DELETE", "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }], "url": { "raw": "{{base_url}}/api/medicines/1", "host": ["{{base_url}}"], "path": ["api", "medicines", "1"] } } }
+			]
+		},
+		{
+			"name": "Medicine Schedules",
+			"item": [
+				{ "name": "List Medicine Schedules", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }], "url": { "raw": "{{base_url}}/api/medicine-schedules", "host": ["{{base_url}}"], "path": ["api", "medicine-schedules"] } } },
+				{ "name": "Create Medicine Schedule", "request": { "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n    \"patient_id\": 1,\n    \"medicine_id\": 1,\n    \"dosage\": \"1 tablet\",\n    \"drink_time\": \"08:00\",\n    \"start_date\": \"2023-10-27\",\n    \"end_date\": \"2023-11-27\",\n    \"notes\": \"Before meal\"\n}" }, "url": { "raw": "{{base_url}}/api/medicine-schedules", "host": ["{{base_url}}"], "path": ["api", "medicine-schedules"] } } },
+				{ "name": "Show Medicine Schedule", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }], "url": { "raw": "{{base_url}}/api/medicine-schedules/1", "host": ["{{base_url}}"], "path": ["api", "medicine-schedules", "1"] } } },
+				{ "name": "Update Medicine Schedule", "request": { "method": "PUT", "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n    \"dosage\": \"2 tablets\"\n}" }, "url": { "raw": "{{base_url}}/api/medicine-schedules/1", "host": ["{{base_url}}"], "path": ["api", "medicine-schedules", "1"] } } },
+				{ "name": "Delete Medicine Schedule", "request": { "method": "DELETE", "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }], "url": { "raw": "{{base_url}}/api/medicine-schedules/1", "host": ["{{base_url}}"], "path": ["api", "medicine-schedules", "1"] } } }
+			]
+		},
+		{
+			"name": "Medicine History",
+			"item": [
+				{ "name": "List Medicine History", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }], "url": { "raw": "{{base_url}}/api/medicine-histories", "host": ["{{base_url}}"], "path": ["api", "medicine-histories"] } } },
+				{ "name": "Create Medicine History", "request": { "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n    \"medicine_schedule_id\": 1,\n    \"taken_time\": \"2023-10-27 08:30:00\",\n    \"status\": \"taken\",\n    \"notes\": \"Late 30 mins\"\n}" }, "url": { "raw": "{{base_url}}/api/medicine-histories", "host": ["{{base_url}}"], "path": ["api", "medicine-histories"] } } },
+				{ "name": "Show Medicine History", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }], "url": { "raw": "{{base_url}}/api/medicine-histories/1", "host": ["{{base_url}}"], "path": ["api", "medicine-histories", "1"] } } },
+				{ "name": "Update Medicine History", "request": { "method": "PUT", "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n    \"status\": \"missed\"\n}" }, "url": { "raw": "{{base_url}}/api/medicine-histories/1", "host": ["{{base_url}}"], "path": ["api", "medicine-histories", "1"] } } },
+				{ "name": "Delete Medicine History", "request": { "method": "DELETE", "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }], "url": { "raw": "{{base_url}}/api/medicine-histories/1", "host": ["{{base_url}}"], "path": ["api", "medicine-histories", "1"] } } }
+			]
+		},
+		{
+			"name": "Meal Types",
+			"item": [
+				{ "name": "List Meal Types", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }], "url": { "raw": "{{base_url}}/api/meal-types", "host": ["{{base_url}}"], "path": ["api", "meal-types"] } } },
+				{ "name": "Create Meal Type", "request": { "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n    \"name\": \"Breakfast\"\n}" }, "url": { "raw": "{{base_url}}/api/meal-types", "host": ["{{base_url}}"], "path": ["api", "meal-types"] } } },
+				{ "name": "Show Meal Type", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }], "url": { "raw": "{{base_url}}/api/meal-types/1", "host": ["{{base_url}}"], "path": ["api", "meal-types", "1"] } } },
+				{ "name": "Update Meal Type", "request": { "method": "PUT", "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n    \"name\": \"Early Breakfast\"\n}" }, "url": { "raw": "{{base_url}}/api/meal-types/1", "host": ["{{base_url}}"], "path": ["api", "meal-types", "1"] } } },
+				{ "name": "Delete Meal Type", "request": { "method": "DELETE", "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }], "url": { "raw": "{{base_url}}/api/meal-types/1", "host": ["{{base_url}}"], "path": ["api", "meal-types", "1"] } } }
+			]
+		},
+		{
+			"name": "Meal Schedules",
+			"item": [
+				{ "name": "List Meal Schedules", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }], "url": { "raw": "{{base_url}}/api/meal-schedules", "host": ["{{base_url}}"], "path": ["api", "meal-schedules"] } } },
+				{ "name": "Create Meal Schedule", "request": { "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n    \"patient_id\": 1,\n    \"meal_type_id\": 1,\n    \"meal_time\": \"07:30\",\n    \"notes\": \"Fruit and oatmeal\"\n}" }, "url": { "raw": "{{base_url}}/api/meal-schedules", "host": ["{{base_url}}"], "path": ["api", "meal-schedules"] } } },
+				{ "name": "Show Meal Schedule", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }], "url": { "raw": "{{base_url}}/api/meal-schedules/1", "host": ["{{base_url}}"], "path": ["api", "meal-schedules", "1"] } } },
+				{ "name": "Update Meal Schedule", "request": { "method": "PUT", "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n    \"meal_time\": \"08:00\"\n}" }, "url": { "raw": "{{base_url}}/api/meal-schedules/1", "host": ["{{base_url}}"], "path": ["api", "meal-schedules", "1"] } } },
+				{ "name": "Delete Meal Schedule", "request": { "method": "DELETE", "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }], "url": { "raw": "{{base_url}}/api/meal-schedules/1", "host": ["{{base_url}}"], "path": ["api", "meal-schedules", "1"] } } }
+			]
+		},
+		{
+			"name": "Health Types",
+			"item": [
+				{ "name": "List Health Types", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }], "url": { "raw": "{{base_url}}/api/health-types", "host": ["{{base_url}}"], "path": ["api", "health-types"] } } },
+				{ "name": "Create Health Type", "request": { "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n    \"name\": \"Blood Pressure\",\n    \"unit\": \"mmHg\",\n    \"normal_min\": 90,\n    \"normal_max\": 120,\n    \"description\": \"Systolic pressure\"\n}" }, "url": { "raw": "{{base_url}}/api/health-types", "host": ["{{base_url}}"], "path": ["api", "health-types"] } } },
+				{ "name": "Show Health Type", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }], "url": { "raw": "{{base_url}}/api/health-types/1", "host": ["{{base_url}}"], "path": ["api", "health-types", "1"] } } },
+				{ "name": "Update Health Type", "request": { "method": "PUT", "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n    \"normal_max\": 130\n}" }, "url": { "raw": "{{base_url}}/api/health-types/1", "host": ["{{base_url}}"], "path": ["api", "health-types", "1"] } } },
+				{ "name": "Delete Health Type", "request": { "method": "DELETE", "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }], "url": { "raw": "{{base_url}}/api/health-types/1", "host": ["{{base_url}}"], "path": ["api", "health-types", "1"] } } }
+			]
+		},
+		{
+			"name": "Health Limits",
+			"item": [
+				{ "name": "List Health Limits", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }], "url": { "raw": "{{base_url}}/api/health-limits", "host": ["{{base_url}}"], "path": ["api", "health-limits"] } } },
+				{ "name": "Create Health Limit", "request": { "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n    \"health_type_id\": 1,\n    \"warning_min\": 130,\n    \"warning_max\": 140,\n    \"danger_min\": 140,\n    \"danger_max\": 200\n}" }, "url": { "raw": "{{base_url}}/api/health-limits", "host": ["{{base_url}}"], "path": ["api", "health-limits"] } } },
+				{ "name": "Show Health Limit", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }], "url": { "raw": "{{base_url}}/api/health-limits/1", "host": ["{{base_url}}"], "path": ["api", "health-limits", "1"] } } },
+				{ "name": "Update Health Limit", "request": { "method": "PUT", "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n    \"warning_max\": 135\n}" }, "url": { "raw": "{{base_url}}/api/health-limits/1", "host": ["{{base_url}}"], "path": ["api", "health-limits", "1"] } } },
+				{ "name": "Delete Health Limit", "request": { "method": "DELETE", "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }], "url": { "raw": "{{base_url}}/api/health-limits/1", "host": ["{{base_url}}"], "path": ["api", "health-limits", "1"] } } }
+			]
+		},
+		{
+			"name": "Health Alerts",
+			"item": [
+				{ "name": "List Health Alerts", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }], "url": { "raw": "{{base_url}}/api/health-alerts", "host": ["{{base_url}}"], "path": ["api", "health-alerts"] } } },
+				{ "name": "Create Health Alert", "request": { "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n    \"patient_id\": 1,\n    \"health_check_id\": 1,\n    \"alert_level\": \"warning\",\n    \"message\": \"High blood pressure detected\",\n    \"is_resolved\": false\n}" }, "url": { "raw": "{{base_url}}/api/health-alerts", "host": ["{{base_url}}"], "path": ["api", "health-alerts"] } } },
+				{ "name": "Show Health Alert", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }], "url": { "raw": "{{base_url}}/api/health-alerts/1", "host": ["{{base_url}}"], "path": ["api", "health-alerts", "1"] } } },
+				{ "name": "Update Health Alert", "request": { "method": "PUT", "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n    \"is_resolved\": true\n}" }, "url": { "raw": "{{base_url}}/api/health-alerts/1", "host": ["{{base_url}}"], "path": ["api", "health-alerts", "1"] } } },
+				{ "name": "Delete Health Alert", "request": { "method": "DELETE", "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }], "url": { "raw": "{{base_url}}/api/health-alerts/1", "host": ["{{base_url}}"], "path": ["api", "health-alerts", "1"] } } }
+			]
+		},
+		{
+			"name": "Telegram Users",
+			"item": [
+				{ "name": "List Telegram Users", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }], "url": { "raw": "{{base_url}}/api/telegram-users", "host": ["{{base_url}}"], "path": ["api", "telegram-users"] } } },
+				{ "name": "Create Telegram User", "request": { "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n    \"user_id\": 1,\n    \"telegram_chat_id\": \"123456789\",\n    \"telegram_username\": \"johndoe_tg\"\n}" }, "url": { "raw": "{{base_url}}/api/telegram-users", "host": ["{{base_url}}"], "path": ["api", "telegram-users"] } } },
+				{ "name": "Show Telegram User", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }], "url": { "raw": "{{base_url}}/api/telegram-users/1", "host": ["{{base_url}}"], "path": ["api", "telegram-users", "1"] } } },
+				{ "name": "Update Telegram User", "request": { "method": "PUT", "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n    \"telegram_username\": \"johndoe_new\"\n}" }, "url": { "raw": "{{base_url}}/api/telegram-users/1", "host": ["{{base_url}}"], "path": ["api", "telegram-users", "1"] } } },
+				{ "name": "Delete Telegram User", "request": { "method": "DELETE", "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }], "url": { "raw": "{{base_url}}/api/telegram-users/1", "host": ["{{base_url}}"], "path": ["api", "telegram-users", "1"] } } }
+			]
+		},
+		{
+			"name": "Notifications",
+			"item": [
+				{ "name": "List Notifications", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }], "url": { "raw": "{{base_url}}/api/notifications", "host": ["{{base_url}}"], "path": ["api", "notifications"] } } },
+				{ "name": "Create Notification", "request": { "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n    \"user_id\": 1,\n    \"title\": \"Test Notif\",\n    \"message\": \"This is a test message\",\n    \"notification_type\": \"info\",\n    \"send_time\": \"2023-10-27 12:00:00\"\n}" }, "url": { "raw": "{{base_url}}/api/notifications", "host": ["{{base_url}}"], "path": ["api", "notifications"] } } },
+				{ "name": "Show Notification", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }], "url": { "raw": "{{base_url}}/api/notifications/1", "host": ["{{base_url}}"], "path": ["api", "notifications", "1"] } } },
+				{ "name": "Update Notification", "request": { "method": "PUT", "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n    \"title\": \"Updated Notif\"\n}" }, "url": { "raw": "{{base_url}}/api/notifications/1", "host": ["{{base_url}}"], "path": ["api", "notifications", "1"] } } },
+				{ "name": "Delete Notification", "request": { "method": "DELETE", "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }], "url": { "raw": "{{base_url}}/api/notifications/1", "host": ["{{base_url}}"], "path": ["api", "notifications", "1"] } } }
+			]
+		},
+		{
+			"name": "Master Notifications",
+			"item": [
+				{ "name": "List Master Notifications", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }], "url": { "raw": "{{base_url}}/api/master-notifications", "host": ["{{base_url}}"], "path": ["api", "master-notifications"] } } },
+				{ "name": "Create Master Notification", "request": { "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n    \"title\": \"Policy Update\",\n    \"message\": \"We updated our privacy policy\",\n    \"notification_type\": \"policy\"\n}" }, "url": { "raw": "{{base_url}}/api/master-notifications", "host": ["{{base_url}}"], "path": ["api", "master-notifications"] } } },
+				{ "name": "Show Master Notification", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }], "url": { "raw": "{{base_url}}/api/master-notifications/1", "host": ["{{base_url}}"], "path": ["api", "master-notifications", "1"] } } },
+				{ "name": "Update Master Notification", "request": { "method": "PUT", "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n    \"message\": \"Updated policy message\"\n}" }, "url": { "raw": "{{base_url}}/api/master-notifications/1", "host": ["{{base_url}}"], "path": ["api", "master-notifications", "1"] } } },
+				{ "name": "Delete Master Notification", "request": { "method": "DELETE", "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }], "url": { "raw": "{{base_url}}/api/master-notifications/1", "host": ["{{base_url}}"], "path": ["api", "master-notifications", "1"] } } }
+			]
+		},
+		{
+			"name": "Medical Records (Combined)",
+			"item": [
+				{ "name": "Store Combined Record", "request": { "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n    \"patient_id\": 1,\n    \"check_time\": \"2023-10-27 10:00:00\",\n    \"vital_signs\": {\n        \"blood_pressure\": \"120/80\",\n        \"heart_rate\": 72,\n        \"body_temperature\": 36.5,\n        \"breathing_rate\": 16,\n        \"oxygen_level\": 98\n    },\n    \"health_checks\": [\n        {\n            \"health_type_id\": 1,\n            \"result_value\": 120,\n            \"status\": \"normal\",\n            \"notes\": \"Test check\"\n        }\n    ]\n}" }, "url": { "raw": "{{base_url}}/api/medical-records", "host": ["{{base_url}}"], "path": ["api", "medical-records"] } } },
+				{ "name": "Show Combined Records", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }], "url": { "raw": "{{base_url}}/api/medical-records/1", "host": ["{{base_url}}"], "path": ["api", "medical-records", "1"] } } }
+			]
+		},
+		{
+			"name": "Monitoring",
+			"item": [
+				{ "name": "Admin Monitoring", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }], "url": { "raw": "{{base_url}}/api/monitoring/admin", "host": ["{{base_url}}"], "path": ["api", "monitoring", "admin"] } } },
+				{ "name": "User Monitoring", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }], "url": { "raw": "{{base_url}}/api/monitoring/user", "host": ["{{base_url}}"], "path": ["api", "monitoring", "user"] } } }
+			]
+		},
+		{
+			"name": "Telegram Bot",
+			"item": [
+				{ "name": "Handle Webhook", "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/telegram/webhook", "host": ["{{base_url}}"], "path": ["api", "telegram", "webhook"] } } },
+				{ "name": "Set Webhook", "request": { "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }], "url": { "raw": "{{base_url}}/api/telegram/set-webhook", "host": ["{{base_url}}"], "path": ["api", "telegram", "set-webhook"] } } }
+			]
+		}
+	]
+}

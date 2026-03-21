@@ -4,20 +4,27 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\HealthType;
+use App\Services\HealthTypeService;
 use Illuminate\Http\Request;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Validation\ValidationException;
 
 class HealthTypeController extends Controller
 {
+    protected $service;
+
+    public function __construct(HealthTypeService $service)
+    {
+        $this->service = $service;
+    }
+
     /**
      * Display a listing of the resource.
-     * Mengambil semua daftar tipe kesehatan.
      */
-    public function index()
+    public function index(Request $request)
     {
         try {
-            $healthTypes = HealthType::all();
+            $healthTypes = $this->service->getAll($request);
             return $this->successResponse($healthTypes, 'Berhasil mengambil daftar tipe kesehatan.');
         } catch (\Exception $e) {
             return $this->errorResponse('Terjadi kesalahan saat mengambil daftar tipe kesehatan.', 500);
@@ -26,7 +33,6 @@ class HealthTypeController extends Controller
 
     /**
      * Store a newly created resource in storage.
-     * Menyimpan tipe kesehatan baru ke dalam database.
      */
     public function store(Request $request)
     {
@@ -39,8 +45,7 @@ class HealthTypeController extends Controller
                 'description' => 'nullable|string',
             ]);
 
-            $healthType = HealthType::create($validated);
-
+            $healthType = $this->service->create($validated);
             return $this->successResponse($healthType, 'Berhasil membuat tipe kesehatan baru.', 201);
         } catch (ValidationException $e) {
             return $this->validationErrorResponse($e->errors());
@@ -51,13 +56,11 @@ class HealthTypeController extends Controller
 
     /**
      * Display the specified resource.
-     * Menampilkan detail dari satu tipe kesehatan berdasarkan ID.
      */
     public function show($id)
     {
         try {
-            $healthType = HealthType::findOrFail($id);
-
+            $healthType = $this->service->findById($id);
             return $this->successResponse($healthType, 'Berhasil mengambil detail tipe kesehatan.');
         } catch (ModelNotFoundException $e) {
             return $this->errorResponse('Tipe kesehatan tidak ditemukan.', 404);
@@ -68,13 +71,10 @@ class HealthTypeController extends Controller
 
     /**
      * Update the specified resource in storage.
-     * Mengubah data tipe kesehatan yang sudah ada di database.
      */
     public function update(Request $request, $id)
     {
         try {
-            $healthType = HealthType::findOrFail($id);
-
             $validated = $request->validate([
                 'name' => 'sometimes|required|string|max:100',
                 'unit' => 'sometimes|required|string|max:20',
@@ -83,8 +83,7 @@ class HealthTypeController extends Controller
                 'description' => 'nullable|string',
             ]);
 
-            $healthType->update($validated);
-
+            $healthType = $this->service->update($id, $validated);
             return $this->successResponse($healthType, 'Berhasil mengubah data tipe kesehatan.');
         } catch (ModelNotFoundException $e) {
             return $this->errorResponse('Tipe kesehatan tidak ditemukan.', 404);
@@ -97,14 +96,11 @@ class HealthTypeController extends Controller
 
     /**
      * Remove the specified resource from storage.
-     * Menghapus tipe kesehatan dari database.
      */
     public function destroy($id)
     {
         try {
-            $healthType = HealthType::findOrFail($id);
-            $healthType->delete();
-
+            $this->service->delete($id);
             return $this->successResponse(null, 'Berhasil menghapus tipe kesehatan.');
         } catch (ModelNotFoundException $e) {
             return $this->errorResponse('Tipe kesehatan tidak ditemukan.', 404);

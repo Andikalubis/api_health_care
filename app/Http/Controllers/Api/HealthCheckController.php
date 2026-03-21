@@ -3,40 +3,30 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\HealthCheck;
-use App\Models\PatientData;
-use App\Services\TelegramService;
+use App\Services\HealthCheckService;
+use App\Services\PatientDataService;
 use Illuminate\Http\Request;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Validation\ValidationException;
 
 class HealthCheckController extends Controller
 {
-    protected $telegramService;
+    protected $service;
+    protected $patientService;
 
-    public function __construct(TelegramService $telegramService)
+    public function __construct(HealthCheckService $service, PatientDataService $patientService)
     {
-        $this->telegramService = $telegramService;
+        $this->service = $service;
+        $this->patientService = $patientService;
     }
 
     /**
      * Display a listing of the resource.
-     * Mengambil daftar hasil pemeriksaan kesehatan.
      */
     public function index(Request $request)
     {
         try {
-            $user = $request->user();
-            $query = HealthCheck::with(['patient', 'healthType']);
-
-            if ($user->role->value !== 'admin') {
-                $query->whereHas('patient', function ($q) use ($user) {
-                    $q->where('user_id', $user->id);
-                });
-            }
-
-            $healthChecks = $query->get();
-
+            $healthChecks = $this->service->getAll($request, ['patient', 'healthType']);
             return $this->successResponse($healthChecks, 'Berhasil mengambil daftar pemeriksaan kesehatan.');
         } catch (\Exception $e) {
             return $this->errorResponse('Terjadi kesalahan saat mengambil daftar pemeriksaan kesehatan.', 500);
@@ -45,7 +35,6 @@ class HealthCheckController extends Controller
 
     /**
      * Store a newly created resource in storage.
-     * Menyimpan hasil pemeriksaan kesehatan baru ke dalam database.
      */
     public function store(Request $request)
     {
@@ -59,36 +48,17 @@ class HealthCheckController extends Controller
                 'check_time' => 'required|date',
             ]);
 
-            // Ownership check
-            if ($request->user()->role->value !== 'admin') {
-                $patient = PatientData::find($validated['patient_id']);
-                if ($patient->user_id !== $request->user()->id) {
-                    return $this->errorResponse('Akses ditolak untuk menambahkan data pada pasien ini.', 403);
-                }
+            $patient = $this->patientService->findById($validated['patient_id']);
+            if (!$this->patientService->checkOwnership($patient, $request->user())) {
+                return $this->errorResponse('Akses ditolak untuk menambahkan data pada pasien ini.', 403);
             }
 
-            $healthCheck = HealthCheck::create($validated);
-            $healthCheck->load('healthType', 'patient');
-
-            // Automate Telegram Alert
-            if (in_array($healthCheck->status, ['warning', 'danger'])) {
-                try {
-                    $this->telegramService->sendHealthAlert(
-                        $healthCheck->patient->user_id,
-                        $healthCheck->healthType->name,
-                        $healthCheck->result_value,
-                        $healthCheck->healthType->unit,
-                        $healthCheck->status,
-                        $healthCheck->notes ?? 'Segera periksa kondisi Anda.'
-                    );
-                } catch (\Exception $e) {
-                    // Log or handle telegram failure silently without failing the main request
-                }
-            }
-
-            return $this->successResponse($healthCheck, 'Berhasil membuat pemeriksaan kesehatan baru.', 201);
+            $healthCheck = $this->service->create($validated);
+            return $this->successResponse($healthCheck->load('healthType', 'patient'), 'Berhasil membuat pemeriksaan kesehatan baru.', 201);
         } catch (ValidationException $e) {
             return $this->validationErrorResponse($e->errors());
+        } catch (ModelNotFoundException $e) {
+            return $this->errorResponse('Pasien tidak ditemukan.', 404);
         } catch (\Exception $e) {
             return $this->errorResponse('Terjadi kesalahan saat membuat pemeriksaan kesehatan.', 500);
         }
@@ -96,14 +66,13 @@ class HealthCheckController extends Controller
 
     /**
      * Display the specified resource.
-     * Menampilkan detail dari hasil pemeriksaan kesehatan berdasarkan ID.
      */
     public function show(Request $request, $id)
     {
         try {
-            $healthCheck = HealthCheck::findOrFail($id);
+            $healthCheck = $this->service->findById($id);
 
-            if ($request->user()->role->value !== 'admin' && $healthCheck->patient->user_id !== $request->user()->id) {
+            if (!$this->service->checkOwnership($healthCheck, $request->user())) {
                 return $this->errorResponse('Akses ditolak.', 403);
             }
 
@@ -117,14 +86,13 @@ class HealthCheckController extends Controller
 
     /**
      * Update the specified resource in storage.
-     * Mengubah data hasil pemeriksaan kesehatan yang sudah ada di database.
      */
     public function update(Request $request, $id)
     {
         try {
-            $healthCheck = HealthCheck::findOrFail($id);
+            $healthCheck = $this->service->findById($id);
 
-            if ($request->user()->role->value !== 'admin' && $healthCheck->patient->user_id !== $request->user()->id) {
+            if (!$this->service->checkOwnership($healthCheck, $request->user())) {
                 return $this->errorResponse('Akses ditolak.', 403);
             }
 
@@ -137,16 +105,14 @@ class HealthCheckController extends Controller
                 'check_time' => 'sometimes|required|date',
             ]);
 
-            // If changing patient_id, check ownership of NEW patient
-            if (isset($validated['patient_id']) && $request->user()->role->value !== 'admin') {
-                $patient = PatientData::find($validated['patient_id']);
-                if ($patient->user_id !== $request->user()->id) {
+            if (isset($validated['patient_id'])) {
+                $patient = $this->patientService->findById($validated['patient_id']);
+                if (!$this->patientService->checkOwnership($patient, $request->user())) {
                     return $this->errorResponse('Akses ditolak untuk memindahkan data ke pasien ini.', 403);
                 }
             }
 
-            $healthCheck->update($validated);
-
+            $healthCheck = $this->service->update($id, $validated);
             return $this->successResponse($healthCheck, 'Berhasil mengubah data pemeriksaan kesehatan.');
         } catch (ModelNotFoundException $e) {
             return $this->errorResponse('Pemeriksaan kesehatan tidak ditemukan.', 404);
@@ -159,19 +125,17 @@ class HealthCheckController extends Controller
 
     /**
      * Remove the specified resource from storage.
-     * Menghapus data hasil pemeriksaan kesehatan dari database.
      */
     public function destroy(Request $request, $id)
     {
         try {
-            $healthCheck = HealthCheck::findOrFail($id);
+            $healthCheck = $this->service->findById($id);
 
-            if ($request->user()->role->value !== 'admin' && $healthCheck->patient->user_id !== $request->user()->id) {
+            if (!$this->service->checkOwnership($healthCheck, $request->user())) {
                 return $this->errorResponse('Akses ditolak.', 403);
             }
 
-            $healthCheck->delete();
-
+            $this->service->delete($id);
             return $this->successResponse(null, 'Berhasil menghapus pemeriksaan kesehatan.');
         } catch (ModelNotFoundException $e) {
             return $this->errorResponse('Pemeriksaan kesehatan tidak ditemukan.', 404);

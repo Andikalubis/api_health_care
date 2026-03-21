@@ -3,32 +3,30 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\VitalSign;
-use App\Models\PatientData;
+use App\Services\VitalSignService;
+use App\Services\PatientDataService;
 use Illuminate\Http\Request;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Validation\ValidationException;
 
 class VitalSignController extends Controller
 {
+    protected $service;
+    protected $patientService;
+
+    public function __construct(VitalSignService $service, PatientDataService $patientService)
+    {
+        $this->service = $service;
+        $this->patientService = $patientService;
+    }
+
     /**
      * Display a listing of the resource.
-     * Mengambil daftar tanda-tanda vital.
      */
     public function index(Request $request)
     {
         try {
-            $user = $request->user();
-            $query = VitalSign::with('patient');
-
-            if ($user->role->value !== 'admin') {
-                $query->whereHas('patient', function ($q) use ($user) {
-                    $q->where('user_id', $user->id);
-                });
-            }
-
-            $vitalSigns = $query->get();
-
+            $vitalSigns = $this->service->getAll($request, ['patient']);
             return $this->successResponse($vitalSigns, 'Berhasil mengambil daftar tanda-tanda vital.');
         } catch (\Exception $e) {
             return $this->errorResponse('Terjadi kesalahan saat mengambil daftar tanda-tanda vital.', 500);
@@ -37,7 +35,6 @@ class VitalSignController extends Controller
 
     /**
      * Store a newly created resource in storage.
-     * Menyimpan data tanda-tanda vital baru ke dalam database.
      */
     public function store(Request $request)
     {
@@ -52,18 +49,17 @@ class VitalSignController extends Controller
                 'check_time' => 'required|date',
             ]);
 
-            if ($request->user()->role->value !== 'admin') {
-                $patient = PatientData::find($validated['patient_id']);
-                if ($patient->user_id !== $request->user()->id) {
-                    return $this->errorResponse('Akses ditolak untuk menambahkan data pada pasien ini.', 403);
-                }
+            $patient = $this->patientService->findById($validated['patient_id']);
+            if (!$this->patientService->checkOwnership($patient, $request->user())) {
+                return $this->errorResponse('Akses ditolak untuk menambahkan data pada pasien ini.', 403);
             }
 
-            $vitalSign = VitalSign::create($validated);
-
+            $vitalSign = $this->service->create($validated);
             return $this->successResponse($vitalSign, 'Berhasil membuat data tanda-tanda vital baru.', 201);
         } catch (ValidationException $e) {
             return $this->validationErrorResponse($e->errors());
+        } catch (ModelNotFoundException $e) {
+            return $this->errorResponse('Pasien tidak ditemukan.', 404);
         } catch (\Exception $e) {
             return $this->errorResponse('Terjadi kesalahan saat membuat data tanda-tanda vital.', 500);
         }
@@ -71,14 +67,13 @@ class VitalSignController extends Controller
 
     /**
      * Display the specified resource.
-     * Menampilkan detail dari data tanda-tanda vital berdasarkan ID.
      */
     public function show(Request $request, $id)
     {
         try {
-            $vitalSign = VitalSign::findOrFail($id);
+            $vitalSign = $this->service->findById($id);
 
-            if ($request->user()->role->value !== 'admin' && $vitalSign->patient->user_id !== $request->user()->id) {
+            if (!$this->service->checkOwnership($vitalSign, $request->user())) {
                 return $this->errorResponse('Akses ditolak.', 403);
             }
 
@@ -92,14 +87,13 @@ class VitalSignController extends Controller
 
     /**
      * Update the specified resource in storage.
-     * Mengubah data tanda-tanda vital yang sudah ada di database.
      */
     public function update(Request $request, $id)
     {
         try {
-            $vitalSign = VitalSign::findOrFail($id);
+            $vitalSign = $this->service->findById($id);
 
-            if ($request->user()->role->value !== 'admin' && $vitalSign->patient->user_id !== $request->user()->id) {
+            if (!$this->service->checkOwnership($vitalSign, $request->user())) {
                 return $this->errorResponse('Akses ditolak.', 403);
             }
 
@@ -113,15 +107,14 @@ class VitalSignController extends Controller
                 'check_time' => 'sometimes|required|date',
             ]);
 
-            if (isset($validated['patient_id']) && $request->user()->role->value !== 'admin') {
-                $patient = PatientData::find($validated['patient_id']);
-                if ($patient->user_id !== $request->user()->id) {
+            if (isset($validated['patient_id'])) {
+                $patient = $this->patientService->findById($validated['patient_id']);
+                if (!$this->patientService->checkOwnership($patient, $request->user())) {
                     return $this->errorResponse('Akses ditolak untuk memindahkan data ke pasien ini.', 403);
                 }
             }
 
-            $vitalSign->update($validated);
-
+            $vitalSign = $this->service->update($id, $validated);
             return $this->successResponse($vitalSign, 'Berhasil mengubah data tanda-tanda vital.');
         } catch (ModelNotFoundException $e) {
             return $this->errorResponse('Data tanda-tanda vital tidak ditemukan.', 404);
@@ -134,19 +127,17 @@ class VitalSignController extends Controller
 
     /**
      * Remove the specified resource from storage.
-     * Menghapus data tanda-tanda vital dari database.
      */
     public function destroy(Request $request, $id)
     {
         try {
-            $vitalSign = VitalSign::findOrFail($id);
+            $vitalSign = $this->service->findById($id);
 
-            if ($request->user()->role->value !== 'admin' && $vitalSign->patient->user_id !== $request->user()->id) {
+            if (!$this->service->checkOwnership($vitalSign, $request->user())) {
                 return $this->errorResponse('Akses ditolak.', 403);
             }
 
-            $vitalSign->delete();
-
+            $this->service->delete($id);
             return $this->successResponse(null, 'Berhasil menghapus data tanda-tanda vital.');
         } catch (ModelNotFoundException $e) {
             return $this->errorResponse('Data tanda-tanda vital tidak ditemukan.', 404);
